@@ -17,16 +17,36 @@ class Equilibrium(commands.Cog):
         self.equilibrium_guilds = JsonDictSaver(
             "equilibrium_guilds",
             default={
-                "VERIFIED_guild_idS": [],
+                "VERIFIED_GUILD_IDS": [],
                 "APPLICATIONS": {},  # TODO clear applications from guilds that kicked the bot or cancel it
             },
         )
 
     async def cog_application_command_check(self, interaction: nextcord.Interaction):
         """
-        Everyone can use this.
+        These commands can only be used if you verified your Server. Use the help command for this category to learn more.
         """
-        return True
+        top_command = interaction.application_command
+        while isinstance(top_command, nextcord.SlashApplicationSubcommand):
+            if top_command.parent_cmd == None:
+                break
+
+            top_command = top_command.parent_cmd
+
+        if not top_command:
+            return False
+
+        if top_command == self.admin_top_command:
+            return True
+
+        if interaction.application_command == self.equilibrium_help:
+            return True
+
+        if top_command == self.top_command:
+            if not interaction.guild_id:
+                return False
+
+            return interaction.guild_id in self.equilibrium_guilds["VERIFIED_GUILD_IDS"]
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -70,6 +90,38 @@ class Equilibrium(commands.Cog):
                 "Guild doesnt exist.", description="Something went wrong here. Weird..."
             )
 
+        invites = await guild.invites()
+
+        invite = None
+        if "VANITY_URL" in guild.features:
+            invite = await guild.vanity_invite()
+
+        if not invite:
+            if not self.bot.user:
+                return fancy_embed(
+                    "You somehow managed to run this while the Bot isnt logged in.. How?",
+                    description="Are you god? Or just stupid and lucky?",
+                )
+
+            own_member = await GetOrFetch.member(guild, self.bot.user.id)
+            if not own_member:
+                return fancy_embed(
+                    "Bot got kicked while generating.", description="Some people..."
+                )
+
+            channel = None
+            for c in guild.text_channels:
+                if c.permissions_for(own_member).create_instant_invite:
+                    channel = c
+
+            if channel:
+                invite = await channel.create_invite()
+
+        if invite:
+            invite_link = invite.url
+        else:
+            invite_link = "Couldnt find or make one. Sketchy..."
+
         return fancy_embed(
             title,
             description="Information about Server is below.",
@@ -77,10 +129,13 @@ class Equilibrium(commands.Cog):
                 "Name": guild.name,
                 "ID": guild.id,
                 "Members": guild.member_count,
+                "Considered Large": guild.large,
                 "Exists since": f"<t:{int(guild.created_at.timestamp())}:R>",
                 "Role amount": len(guild.roles),
                 "Channel amount": len(guild.channels),
-                "Flags": "\n".join(guild.features),
+                "Feature Flags": "\n".join(guild.features),
+                "Invite Link": invite_link,
+                "Invite Amount": len(invites),
             },
         )
 
@@ -106,7 +161,7 @@ class Equilibrium(commands.Cog):
         while guild_id in self.equilibrium_guilds["APPLICATIONS"]:
             del self.equilibrium_guilds["APPLICATIONS"][guild_id]
 
-        self.equilibrium_guilds["VERIFIED_guild_idS"].append(guild_id)
+        self.equilibrium_guilds["VERIFIED_GUILD_IDS"].append(guild_id)
 
         # TODO Send Message back telling the staff they got approved
 
@@ -145,6 +200,20 @@ class Equilibrium(commands.Cog):
         await interaction.send(
             embed=await self.guild_info_embed(guild_id, "Rejected Guild")
         )
+
+    @nextcord.slash_command(
+        "equilibrium",
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(manage_messages=True),
+    )
+    async def top_command(self, interaction: nextcord.Interaction):
+        pass
+
+    @top_command.subcommand(
+        "help", description="Shows what this part of the Bot does, and how to use it."
+    )
+    async def equilibrium_help(self, interaction: nextcord.Interaction):
+        pass  # TODO make a good help command
 
 
 async def setup(bot):
