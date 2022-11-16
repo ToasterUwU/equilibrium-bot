@@ -7,7 +7,6 @@ from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
 
 # TODO Application Commands (create, cancel, see)
-# TODO make a Application System structure
 
 
 class Equilibrium(commands.Cog):
@@ -18,7 +17,7 @@ class Equilibrium(commands.Cog):
             "equilibrium_guilds",
             default={
                 "VERIFIED_GUILD_IDS": [],
-                "APPLICATIONS": {},  # TODO clear applications from guilds that kicked the bot or cancel it
+                "APPLICATIONS": {},
             },
         )
 
@@ -49,8 +48,18 @@ class Equilibrium(commands.Cog):
             return interaction.guild_id in self.equilibrium_guilds["VERIFIED_GUILD_IDS"]
 
     @commands.Cog.listener()
-    async def on_ready(self):
-        pass
+    async def on_guild_remove(self, guild: nextcord.Guild):
+        if guild.id in self.equilibrium_guilds["APPLICATIONS"]:
+            ticket_thread = await GetOrFetch.channel(
+                self.bot,
+                self.equilibrium_guilds["APPLICATIONS"][guild.id]["TICKET_THREAD_ID"],
+            )
+            if isinstance(ticket_thread, nextcord.Thread):
+                await ticket_thread.edit(archived=True, locked=True)
+
+            del self.equilibrium_guilds["APPLICATIONS"][guild.id]
+
+            self.equilibrium_guilds.save()
 
     @nextcord.slash_command(
         "admin-equilibrium",
