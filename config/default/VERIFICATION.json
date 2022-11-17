@@ -1,0 +1,68 @@
+{
+  "VERIFICATION_CHANNEL_ID": 1041952780102930432,
+  "VERIFICATION_MESSAGE_ID": null,
+  "VERIFIED_ROLE_ID": 1041848382278340609,
+  "PUZZLE_OPTIONS": {
+    "symbol in a box": [
+      "✅",
+      "☑️",
+      "◀️"
+    ],
+    "symbol without a box": [
+      "❌",
+      "🚫",
+      "✖️"
+    ],
+    "something you can drink": [
+      "🍺",
+      "🧋",
+      "☕"
+    ],
+    "something you can use as a tool": [
+      "🔧",
+      "🪛",
+      "🔨"
+    ],
+    "flag that doesnt belong to a country": [
+      "🏳️‍⚧️",
+      "🏁",
+      "🏳️‍🌈"
+    ],
+    "fantasy creature that looks a lot like a human": [
+      "🧝‍♀️",
+      "🧙",
+      "🧚‍♀️",
+      "👼"
+    ],
+    "very big human made object": [
+      "🎡",
+      "🛰",
+      "✈️"
+    ],
+    "natural landscape": [
+      "🗻",
+      "🏝",
+      "🌅"
+    ],
+    "insect": [
+      "🐝",
+      "🐜",
+      "🐞"
+    ],
+    "bird": [
+      "🐤",
+      "🦆",
+      "🦜"
+    ],
+    "healthy food": [
+      "🍎",
+      "🥦",
+      "🥕"
+    ],
+    "unhealthy food": [
+      "🌭",
+      "🍔",
+      "🍟"
+    ]
+  }
+}
