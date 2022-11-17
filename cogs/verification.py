@@ -8,12 +8,6 @@ from nextcord.ext import commands
 from internal_tools.configuration import CONFIG
 from internal_tools.discord import *
 
-# TODO make usable for multiple guilds
-# TODO make the time to wait configurable
-# TODO make it disableable
-# TODO add more tests
-# TODO add help command
-
 
 class VerificationRequired(nextcord.ui.View):
     def __init__(self, cog: "Verification"):
