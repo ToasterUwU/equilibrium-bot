@@ -61,6 +61,11 @@ class Equilibrium(commands.Cog):
 
             self.equilibrium_guilds.save()
 
+        while guild.id in self.equilibrium_guilds["VERIFIED_GUILD_IDS"]:
+            del self.equilibrium_guilds["VERIFIED_GUILD_IDS"][guild.id]
+
+            self.equilibrium_guilds.save()
+
     @nextcord.slash_command(
         "admin-equilibrium",
         dm_permission=False,
