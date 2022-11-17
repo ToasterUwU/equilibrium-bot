@@ -63,7 +63,7 @@ class TicketControls(nextcord.ui.View):
             return
 
         try:
-            ticket_data = self.cog.tickets[str(interaction.channel_id)]
+            ticket_data = self.cog.tickets[interaction.channel_id]
         except:
             await interaction.send(
                 "This Ticket doesnt seem to be known by the Bot. Please close it manually by archiving this channel."
@@ -150,7 +150,7 @@ class TicketControls(nextcord.ui.View):
             return
 
         try:
-            ticket_data = self.cog.tickets[str(interaction.channel_id)]
+            ticket_data = self.cog.tickets[interaction.channel_id]
         except:
             await interaction.send(
                 "This Ticket doesnt seem to be known by the Bot. Please finish it manually close it by archiving this channel."
@@ -176,7 +176,7 @@ class TicketControls(nextcord.ui.View):
         if ticket_data["CLAIMER_ID"] != member.id:
             new_name = f"{member.display_name}-{self.cog.get_ticket_id(interaction.channel_id)}"
 
-            self.cog.tickets[str(interaction.channel_id)]["CLAIMER_ID"] = member.id
+            self.cog.tickets[interaction.channel_id]["CLAIMER_ID"] = member.id
             self.cog.tickets.save()
 
             try:
@@ -193,7 +193,7 @@ class TicketControls(nextcord.ui.View):
         else:
             new_name = f"Ticket-{self.cog.get_ticket_id(interaction.channel_id)}"
 
-            self.cog.tickets[str(interaction.channel_id)]["CLAIMER_ID"] = None
+            self.cog.tickets[interaction.channel_id]["CLAIMER_ID"] = None
             self.cog.tickets.save()
 
             try:
@@ -285,7 +285,7 @@ class NewTicket(nextcord.ui.View):
             auto_archive_duration=archive_duration,
         )
 
-        self.cog.tickets[str(thread.id)] = {
+        self.cog.tickets[thread.id] = {
             "STARTED": False,
             "CREATOR_ID": interaction.user.id,
             "CLAIMER_ID": None,
