@@ -224,7 +224,7 @@ class Verification(commands.Cog):
         if member.bot:
             return
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(240)
 
         if member.id not in self.verifying_users:
             fetched_member = await GetOrFetch.member(member.guild, member.id)
