@@ -8,3 +8,5 @@ __pycache__
 /build
 /windows_installer.exe
 config/GENERAL.json
+/config/IMPERSONATION.json
+/config/TICKET_SYSTEM.json

@@ -10,17 +10,18 @@ from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
 
 
-class NameIllegalChecker:
-    _CHECKS = []
+_CHECKS = []
 
+
+def name_check(func: Callable):
+    _CHECKS.append(func)
+    return func
+
+
+class NameIllegalChecker:
     def __init__(self, name: str, illegal_names: List[str]) -> None:
         self.name = name.casefold()
         self.illegal_names = [x.casefold() for x in illegal_names]
-
-    @staticmethod
-    def name_check(func: Callable):
-        NameIllegalChecker._CHECKS.append(func)
-        return func
 
     @name_check
     def _equal(self):
@@ -40,7 +41,7 @@ class NameIllegalChecker:
         """
         Runs all checks and returns True if any of them returned True.
         """
-        for func in self._CHECKS:
+        for func in _CHECKS:
             if func(self):
                 return True
         return False
