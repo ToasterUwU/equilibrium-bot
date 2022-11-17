@@ -329,10 +329,16 @@ class Impersonation(commands.Cog):
         dm_permission=False,
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
-    async def impersonation(self, interaction: nextcord.Interaction):
+    async def top_command(self, interaction: nextcord.Interaction):
         pass
 
-    @impersonation.subcommand(
+    @top_command.subcommand(
+        "help", description="Explains what this does and how to use it."
+    )
+    async def impersonation_help(self, interaction: nextcord.Interaction):
+        pass  # TODO Help command for Impersonation Cog
+
+    @top_command.subcommand(
         name="protect-user",
         description="Tell the Bot to protect a User from impersonation.",
     )
@@ -343,7 +349,7 @@ class Impersonation(commands.Cog):
 
         await interaction.send(f"{user.mention} is now protected from impersonation.")
 
-    @impersonation.subcommand(
+    @top_command.subcommand(
         name="dont-protect-user",
         description="Tell the Bot to stop protecting a User from impersonation.",
     )
@@ -356,7 +362,7 @@ class Impersonation(commands.Cog):
             f"{user.mention} is not protected from impersonation anymore."
         )
 
-    @impersonation.subcommand(
+    @top_command.subcommand(
         name="protect-role",
         description="Tell the Bot to protect everybody with a specific Role from impersonation.",
     )
@@ -369,7 +375,7 @@ class Impersonation(commands.Cog):
             f"Everyone with the role {role.mention} is now protected from impersonation."
         )
 
-    @impersonation.subcommand(
+    @top_command.subcommand(
         name="dont-protect-role",
         description="Tell the Bot to stop protecting everybody with a specific Role from impersonation.",
     )
@@ -382,7 +388,7 @@ class Impersonation(commands.Cog):
             f"Everyone with the role {role.mention} is not protected from impersonation anymore, unless they are also added manually as a user."
         )
 
-    @impersonation.subcommand(
+    @top_command.subcommand(
         name="add-manual-name",
         description="Lets you manually add a name that will be illegal. This is meant for edge cases.",
     )
@@ -394,7 +400,7 @@ class Impersonation(commands.Cog):
 
         await interaction.send(f"'{name}' is now a illegal name.")
 
-    @impersonation.subcommand(
+    @top_command.subcommand(
         name="rm-manual-name",
         description="Lets you remove a name that was manually added. This is meant for edge cases.",
     )
@@ -406,7 +412,7 @@ class Impersonation(commands.Cog):
 
         await interaction.send(f"'{name}' is not a illegal name anymore.")
 
-    @impersonation.subcommand(
+    @top_command.subcommand(
         name="test-name",
         description="Lets you manually check if a user with a specific name would be banned or not.",
     )
@@ -421,7 +427,7 @@ class Impersonation(commands.Cog):
 
         await interaction.send(msg)
 
-    @impersonation.subcommand(
+    @top_command.subcommand(
         name="report-name",
         description="Report a name that slipped past the Bot. So that Aki can find a method to make the bot recognize it.",
     )
