@@ -9,7 +9,6 @@ from nextcord.ext import application_checks, commands
 from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
 
-
 _CHECKS = []
 
 

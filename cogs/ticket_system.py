@@ -489,7 +489,9 @@ class TicketSystem(commands.Cog):
                             self.tickets.save()
 
                             first_responder_role_id = None
-                            for name, data in CONFIG["TICKET_SYSTEM"]["CATEGORIES"].items():
+                            for name, data in CONFIG["TICKET_SYSTEM"][
+                                "CATEGORIES"
+                            ].items():
                                 if data["CHANNEL_ID"] == msg.channel.parent_id:
                                     first_responder_role_id = data[
                                         "FIRST_RESPONDER_ROLE_ID"
