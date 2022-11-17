@@ -10,7 +10,7 @@ from internal_tools.discord import *
 
 # TODO make usable for multiple guilds
 # TODO make the time to wait configurable
-# TODO make it diableable
+# TODO make it disableable
 # TODO add more tests
 # TODO add help command
 
