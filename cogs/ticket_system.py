@@ -220,6 +220,7 @@ class NewTicket(nextcord.ui.View):
                 label=key, description=data["DESCRIPTION"], emoji=data["EMOJI"]
             )
             for key, data in CONFIG["TICKET_SYSTEM"]["CATEGORIES"].items()
+            if data["SYSTEM_CATEGORY"] == False
         ]
 
         self.select = nextcord.ui.Select(
@@ -253,60 +254,19 @@ class NewTicket(nextcord.ui.View):
             )
             return
 
-        category_data = CONFIG["TICKET_SYSTEM"]["CATEGORIES"][self.select.values[0]]
-        category_text_channel = await GetOrFetch.channel(
-            self.cog.bot, category_data["CHANNEL_ID"]
+        ticket = await self.cog.create_ticket(
+            category=self.select.values[0],
+            creator_id=interaction.user.id,
+            initial_message=f"{interaction.user.mention} Here is your Ticket.\n\nPlease describe your issue/question/inquery in full.\nAs soon as you send a message explaining your issue/question/inquery, staff will be notified and will be ready to help you.",
         )
 
-        if not isinstance(category_text_channel, nextcord.TextChannel):
-            await interaction.send("This only works in Textchannels.", ephemeral=True)
-            return
-
-        temp_name = f"temp-{random.randint(100, 999)}"
-        if self.cog.private_threads:
-            thread = await category_text_channel.create_thread(name=temp_name)
-        else:
-            msg = await category_text_channel.send(temp_name)
-            thread = await msg.create_thread(name=temp_name)
-
-            await msg.delete()
-
-        if self.cog.seven_day_archive:
-            archive_duration = 10080
-        elif self.cog.three_day_archive:
-            archive_duration = 4320
-        else:
-            archive_duration = 1440
-
-        await thread.edit(
-            name=f"Ticket-{self.cog.get_ticket_id(thread.id)}",
-            locked=True,
-            invitable=True if self.cog.private_threads else nextcord.utils.MISSING,
-            auto_archive_duration=archive_duration,
-        )
-
-        self.cog.tickets[thread.id] = {
-            "STARTED": False,
-            "CREATOR_ID": interaction.user.id,
-            "CLAIMER_ID": None,
-        }
-        self.cog.tickets.save()
-
-        await thread.send(
-            f"{interaction.user.mention} Here is your Ticket.\n\nPlease describe your issue/question/inquery in full.\nAs soon as you send a message explaining your issue/question/inquery, staff will be notified and will be ready to help you.",
-            view=TicketControls(self.cog),
-        )
-
-        await interaction.send(
-            f"Ticket created, you can find it here: {thread.jump_url}", ephemeral=True
-        )
-
-        if category_data["AUTO_RESPOND_TEXT"]:
-            await thread.send(
-                embed=fancy_embed(
-                    "Automatic Message", description=category_data["AUTO_RESPOND_TEXT"]
-                )
+        if ticket:
+            await interaction.send(
+                f"Ticket created, you can find it here: {ticket.jump_url}",
+                ephemeral=True,
             )
+        else:
+            await interaction.send("Couldnt create a Ticket.", ephemeral=True)
 
 
 class AutoResponseModal(nextcord.ui.Modal):
@@ -344,6 +304,68 @@ class TicketSystem(commands.Cog):
 
     async def cog_application_command_check(self, interaction: nextcord.Interaction):
         return True
+
+    async def create_ticket(
+        self,
+        category: str,
+        creator_id: int,
+        initial_message: str,
+        add_ticket_controls: bool = True,
+    ):
+        category_data = CONFIG["TICKET_SYSTEM"]["CATEGORIES"][category]
+        category_text_channel = await GetOrFetch.channel(
+            self.bot, category_data["CHANNEL_ID"]
+        )
+
+        if not isinstance(category_text_channel, nextcord.TextChannel):
+            return None
+
+        temp_name = f"temp-{random.randint(100, 999)}"
+        if self.private_threads:
+            thread = await category_text_channel.create_thread(name=temp_name)
+        else:
+            msg = await category_text_channel.send(temp_name)
+            thread = await msg.create_thread(name=temp_name)
+
+            await msg.delete()
+
+        if self.seven_day_archive:
+            archive_duration = 10080
+        elif self.three_day_archive:
+            archive_duration = 4320
+        else:
+            archive_duration = 1440
+
+        await thread.edit(
+            name=f"Ticket-{self.get_ticket_id(thread.id)}",
+            locked=True,
+            invitable=True if self.private_threads else nextcord.utils.MISSING,
+            auto_archive_duration=archive_duration,
+        )
+
+        self.tickets[thread.id] = {
+            "STARTED": False,
+            "CREATOR_ID": creator_id,
+            "CLAIMER_ID": None,
+        }
+        self.tickets.save()
+
+        if add_ticket_controls:
+            await thread.send(
+                initial_message,
+                view=TicketControls(self),
+            )
+        else:
+            await thread.send(initial_message)
+
+        if category_data["AUTO_RESPOND_TEXT"]:
+            await thread.send(
+                embed=fancy_embed(
+                    "Automatic Message", description=category_data["AUTO_RESPOND_TEXT"]
+                )
+            )
+
+        return thread
 
     async def autocomplete_category_name(
         self, interaction: nextcord.Interaction, category_name: str
@@ -480,15 +502,13 @@ class TicketSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg: nextcord.Message):
-        if msg.author.bot == False and msg.guild:
+        if msg.guild:
             if msg.guild.id == CONFIG["GENERAL"]["HOME_GUILD_ID"]:
                 if isinstance(msg.channel, nextcord.Thread):
                     if msg.channel.id in self.tickets:
                         if self.tickets[msg.channel.id]["STARTED"] == False:
-                            self.tickets[msg.channel.id]["STARTED"] = True
-                            self.tickets.save()
-
                             first_responder_role_id = None
+                            system_category = None
                             for name, data in CONFIG["TICKET_SYSTEM"][
                                 "CATEGORIES"
                             ].items():
@@ -496,17 +516,21 @@ class TicketSystem(commands.Cog):
                                     first_responder_role_id = data[
                                         "FIRST_RESPONDER_ROLE_ID"
                                     ]
+                                    system_category = data["SYSTEM_CATEGORY"]
 
-                            if not isinstance(first_responder_role_id, int):
-                                return
+                            if not msg.author.bot or system_category:
+                                self.tickets[msg.channel.id]["STARTED"] = True
+                                self.tickets.save()
+                                if not isinstance(first_responder_role_id, int):
+                                    return
 
-                            first_responder_role = await GetOrFetch.role(
-                                msg.guild, first_responder_role_id
-                            )
-                            if first_responder_role:
-                                await msg.channel.send(
-                                    f"{first_responder_role.mention} A new Ticket has been created."
+                                first_responder_role = await GetOrFetch.role(
+                                    msg.guild, first_responder_role_id
                                 )
+                                if first_responder_role:
+                                    await msg.channel.send(
+                                        f"{first_responder_role.mention} A new Ticket has been created."
+                                    )
 
     @nextcord.slash_command(
         "ticket-system",
@@ -552,8 +576,15 @@ class TicketSystem(commands.Cog):
             required=False,
             default=None,
         ),
+        system_category: bool = nextcord.SlashOption(
+            "system-category",
+            description="If this is True, this category wont be shown to users, and is for Bot use only.",
+            required=False,
+            default=False,
+        ),
     ):
         CONFIG["TICKET_SYSTEM"]["CATEGORIES"][name] = {
+            "SYSTEM_CATEGORY": system_category,
             "DESCRIPTION": description,
             "EMOJI": emoji,
             "CHANNEL_ID": channel.id,

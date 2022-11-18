@@ -23,7 +23,7 @@ class General(commands.Cog):
         dm_permission=False,
     )
     async def help_command(self, interaction: nextcord.Interaction):
-        pages = generate_help_command_pages(
+        pages = generate_help_command_pages(  # TODO check text
             self.help_command_assets,
             IMPERSONATION_HELP_COMMAND_MENTION=self.bot.cogs[
                 "Impersonation"

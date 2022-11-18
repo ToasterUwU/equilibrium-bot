@@ -339,7 +339,9 @@ class Impersonation(commands.Cog):
         "help", description="Explains what this does and how to use it."
     )
     async def impersonation_help(self, interaction: nextcord.Interaction):
-        pages = generate_help_command_pages(self.help_command_assets)
+        pages = generate_help_command_pages(
+            self.help_command_assets
+        )  # TODO add help text
 
         await CatalogView(pages).start(interaction)
 

@@ -1,14 +1,40 @@
-import os
+import asyncio
 from typing import Optional
 
 import nextcord
 from nextcord.ext import application_checks, commands
 
+from cogs.ticket_system import TicketSystem
 from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
 from internal_tools.general import *
 
-# TODO Application Commands (create, cancel, see)
+# TODO preventive ban logic
+# TODO ping/invite application creator when they join
+# TODO cancel application and archive ticket when application creator leaves
+# TODO add application_checks everywhere
+
+
+class LinkCollector(nextcord.ui.Modal):
+    def __init__(self):
+        super().__init__(
+            "Enter Links below. (Website, Social Media)",
+            timeout=600,
+        )
+
+        self.input = nextcord.ui.TextInput(
+            "Links", style=nextcord.TextInputStyle.paragraph, default_value=""
+        )
+        self.add_item(self.input)
+
+        self.value = None
+
+    async def callback(self, interaction: nextcord.Interaction):
+        self.value = self.input.value
+
+        await interaction.send("Info collected.", ephemeral=True)
+
+        self.stop()
 
 
 class PreventiveBan(commands.Cog):
@@ -64,7 +90,7 @@ class PreventiveBan(commands.Cog):
             ticket_thread = await GetOrFetch.channel(
                 self.bot,
                 self.preventive_ban_guilds["APPLICATIONS"][guild.id][
-                    "TICKET_THREAD_ID"
+                    "TICKET_CHANNEL_ID"
                 ],
             )
             if isinstance(ticket_thread, nextcord.Thread):
@@ -100,14 +126,14 @@ class PreventiveBan(commands.Cog):
         if str_guild_id:
             await interaction.response.send_autocomplete(
                 [
-                    i
-                    for i in self.preventive_ban_guilds["APPLICATIONS"]
+                    str(i)
+                    for i in self.preventive_ban_guilds["APPLICATIONS"].keys()
                     if str(i).startswith(str_guild_id)
                 ]
             )
         else:
             await interaction.response.send_autocomplete(
-                self.preventive_ban_guilds["APPLICATIONS"]
+                [str(i) for i in self.preventive_ban_guilds["APPLICATIONS"].keys()]
             )
 
     async def guild_info_embed(self, guild_id: int, title: str):
@@ -142,7 +168,7 @@ class PreventiveBan(commands.Cog):
                     channel = c
 
             if channel:
-                invite = await channel.create_invite()
+                invite = await channel.create_invite(max_age=604800)
 
         if invite:
             invite_link = invite.url
@@ -185,18 +211,40 @@ class PreventiveBan(commands.Cog):
             )
             return
 
+        home_guild = await GetOrFetch.guild(
+            self.bot, CONFIG["GENERAL"]["HOME_GUILD_ID"]
+        )
+        if not home_guild:
+            await interaction.send(
+                "There is a Configuration error, please tell the staff about this."
+            )
+            raise Exception("Couldnt get Home Guild.")
+
+        ticket = await GetOrFetch.channel(
+            home_guild,
+            self.preventive_ban_guilds["APPLICATIONS"][guild_id]["TICKET_CHANNEL_ID"],
+        )
+        if isinstance(ticket, nextcord.Thread):
+            if not ticket.archived:
+                await ticket.send(
+                    f"<@{self.preventive_ban_guilds['APPLICATIONS'][guild_id]['CREATOR_ID']}> Your Server has been approved. Enjoy the new Feature. This Ticket will be closed 5 minutes."
+                )
+
         while guild_id in self.preventive_ban_guilds["APPLICATIONS"]:
             del self.preventive_ban_guilds["APPLICATIONS"][guild_id]
 
         self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][guild_id] = {"ENABLED": True}
-
-        # TODO Send Message back telling the staff they got approved
 
         self.preventive_ban_guilds.save()
 
         await interaction.send(
             embed=await self.guild_info_embed(guild_id, "Approved Guild")
         )
+
+        if isinstance(ticket, nextcord.Thread):
+            await asyncio.sleep(300)
+
+            await ticket.edit(archived=True)
 
     @admin_guild_verfication_subcommand.subcommand(
         "reject", description="Reject a Server for using the preventive ban feature."
@@ -220,13 +268,35 @@ class PreventiveBan(commands.Cog):
         while guild_id in self.preventive_ban_guilds["APPLICATIONS"]:
             del self.preventive_ban_guilds["APPLICATIONS"][guild_id]
 
-        # TODO Send Message back telling the staff they got rejected
+        home_guild = await GetOrFetch.guild(
+            self.bot, CONFIG["GENERAL"]["HOME_GUILD_ID"]
+        )
+        if not home_guild:
+            await interaction.send(
+                "There is a Configuration error, please tell the staff about this."
+            )
+            raise Exception("Couldnt get Home Guild.")
+
+        ticket = await GetOrFetch.channel(
+            home_guild,
+            self.preventive_ban_guilds["APPLICATIONS"][guild_id]["TICKET_CHANNEL_ID"],
+        )
+        if isinstance(ticket, nextcord.Thread):
+            if not ticket.archived:
+                await ticket.send(
+                    f"<@{self.preventive_ban_guilds['APPLICATIONS'][guild_id]['CREATOR_ID']}> Your Server has been REJECTED. This might be because the Server is too small, or because Staff thought it was sketchy. This Ticket will be closed in 5 minutes."
+                )
 
         self.preventive_ban_guilds.save()
 
         await interaction.send(
             embed=await self.guild_info_embed(guild_id, "Rejected Guild")
         )
+
+        if isinstance(ticket, nextcord.Thread):
+            await asyncio.sleep(300)
+
+            await ticket.edit(archived=True)
 
     @nextcord.slash_command(
         "preventive-ban",
@@ -240,7 +310,7 @@ class PreventiveBan(commands.Cog):
         "help", description="Shows what this part of the Bot does, and how to use it."
     )
     async def preventive_ban_help(self, interaction: nextcord.Interaction):
-        pages = generate_help_command_pages(
+        pages = generate_help_command_pages(  # TODO check text
             self.help_command_assets,
             APPLY_FOR_VERIFICATION_COMMAND_MENTION=self.apply_for_verification.get_mention(),  # type: ignore
             ENABLE_OR_DISABLE_PREVENTIVE_BAN_COMMAND_MENTION=self.enable_or_disable.get_mention(),  # type: ignore
@@ -256,6 +326,12 @@ class PreventiveBan(commands.Cog):
         if not interaction.guild_id:
             raise application_checks.errors.ApplicationNoPrivateMessage()
 
+        if not interaction.user:
+            await interaction.send(
+                "Something went wrong on Discords side. Try again.", ephemeral=True
+            )
+            return
+
         if interaction.guild_id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]:
             await interaction.send(
                 f"Congrats! This server is already verified. Check out {self.preventive_ban_help.get_mention()} to learn about what is next.",
@@ -265,19 +341,89 @@ class PreventiveBan(commands.Cog):
 
         if interaction.guild_id in self.preventive_ban_guilds["APPLICATIONS"]:
             await interaction.send(
-                "This server already has an Application pending.",  # TODO link to application ticket thing and give invite
-                ephemeral=True,
+                f"This server already has an Application pending.\nLink to Ticket: {self.preventive_ban_guilds['APPLICATIONS']['TICKET_JUMP_URL']}\n\n{CONFIG['GENERAL']['OFFICAL_INVITE']}",
             )
             return
 
-        # TODO ask for website, social media, etc. and make a ticket for the application
+        link_collector = LinkCollector()
+        await interaction.response.send_modal(link_collector)
+
+        while not link_collector.is_finished():
+            await asyncio.sleep(1)
+
+        links = link_collector.value
+
+        home_guild = await GetOrFetch.guild(
+            self.bot, CONFIG["GENERAL"]["HOME_GUILD_ID"]
+        )
+        if not home_guild:
+            await interaction.send(
+                "There is a Configuration error, please tell the staff about this."
+            )
+            raise Exception("Couldnt get Home Guild.")
+
+        try:
+            member = await home_guild.fetch_member(interaction.user.id)
+        except nextcord.errors.HTTPException:
+            member = None
+
+        initial_message = f"{member.mention if member else interaction.user} started the verification process."
+
+        ticket_system: TicketSystem = self.bot.cogs["TicketSystem"]  # type: ignore
+        ticket = await ticket_system.create_ticket(
+            "Server Verification",
+            interaction.user.id,
+            initial_message,
+            add_ticket_controls=False,
+        )
+
+        if not ticket:
+            await interaction.send(
+                "Couldnt create Ticket. Thats not supposed to happen... Notify staff please."
+            )
+            raise Exception("Couldnt create Ticket.")
+
+        await ticket.send(
+            f"Links:\n\n```\n{links}\n```",
+            embed=await self.guild_info_embed(interaction.guild_id, "Server Stats"),
+        )
+
+        self.preventive_ban_guilds["APPLICATIONS"][interaction.guild_id] = {
+            "LINKS": links,
+            "TICKET_JUMP_URL": ticket.jump_url,
+            "TICKET_CHANNEL_ID": ticket.id,
+            "CREATOR_ID": interaction.user.id,
+        }
+        self.preventive_ban_guilds.save()
+
+        if member:
+            await interaction.send(
+                f"Thanks for starting this verification process for your Server."
+                "\nPlease check out your ticket with the following link and send a Message there, to let us know you are there."
+                f"\n\n{ticket.jump_url}"
+            )
+        else:
+            await interaction.send(
+                f"Thanks for starting this verification process for your Server."
+                "\nPlease join the offical Server and check out your ticket with the following link and send a Message there, to let us know you are there."
+                f"\n\n{ticket.jump_url}\n{CONFIG['GENERAL']['OFFICAL_INVITE']}"
+            )
 
     @top_command.subcommand(
         "enable-or-disable",
         description="Toggles the preventive ban feature for this Server.",
     )
     async def enable_or_disable(self, interaction: nextcord.Interaction):
-        pass
+        if not interaction.guild_id:
+            raise application_checks.errors.ApplicationNoPrivateMessage()
+
+        self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][
+            interaction.guild_id
+        ] = not self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][interaction.guild_id]
+
+        await interaction.send(
+            f"The Preventive ban feature is now: {'Enabled' if self.preventive_ban_guilds['VERIFIED_GUILD_IDS'][interaction.guild_id] else 'Disabled'}"
+        )
 
 
 async def setup(bot):

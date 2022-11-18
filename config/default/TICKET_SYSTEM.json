@@ -1,5 +1,30 @@
 {
   "OPEN_TICKET_CHANNEL_ID": 1042609004767105065,
   "OPEN_TICKET_MESSAGE_ID": null,
-  "CATEGORIES": {}
+  "CATEGORIES": {
+    "Other": {
+      "SYSTEM_CATEGORY": false,
+      "DESCRIPTION": "For everything that is covered by the Forums",
+      "EMOJI": null,
+      "CHANNEL_ID": 1042629611089039471,
+      "FIRST_RESPONDER_ROLE_ID": 1041950366058680340,
+      "AUTO_RESPOND_TEXT": null
+    },
+    "Contact Staff": {
+      "SYSTEM_CATEGORY": false,
+      "DESCRIPTION": "This is not for Support, just contact",
+      "EMOJI": null,
+      "CHANNEL_ID": 1042659541281677343,
+      "FIRST_RESPONDER_ROLE_ID": 1041950366058680340,
+      "AUTO_RESPOND_TEXT": null
+    },
+    "Server Verification": {
+      "SYSTEM_CATEGORY": true,
+      "DESCRIPTION": "This is a hidden Category for Server Verification",
+      "EMOJI": null,
+      "CHANNEL_ID": 1041951662643880069,
+      "FIRST_RESPONDER_ROLE_ID": 1041950366058680340,
+      "AUTO_RESPOND_TEXT": null
+    }
+  }
 }
