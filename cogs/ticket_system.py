@@ -460,7 +460,9 @@ class TicketSystem(commands.Cog):
                             await creator.send(
                                 embed=fancy_embed(
                                     "A Ticket you created was closed.",
-                                    description=f"Ticket-{self.get_ticket_id(after.id)} has been closed automatically, following the lasting inactivity.\nClick the following link to see the closed Ticket and all of its contents: {after.jump_url}",
+                                    description=f"Ticket-{self.get_ticket_id(after.id)} has been closed"
+                                    f"{' automatically, following the lasting inactivity' if not after.archiver_id else ''}."
+                                    "\nClick the following link to see the closed Ticket and all of its contents: {after.jump_url}",
                                 )
                             )
                         except:
