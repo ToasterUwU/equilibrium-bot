@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 import nextcord
@@ -5,6 +6,7 @@ from nextcord.ext import application_checks, commands
 
 from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
+from internal_tools.general import *
 
 # TODO Application Commands (create, cancel, see)
 
@@ -19,6 +21,10 @@ class PreventiveBan(commands.Cog):
                 "VERIFIED_GUILD_IDS": {},
                 "APPLICATIONS": {},
             },
+        )
+
+        self.help_command_assets = load_help_command_assets(
+            "assets/PREVENTIVE_BAN/HELP"
         )
 
     async def cog_application_command_check(self, interaction: nextcord.Interaction):
@@ -234,26 +240,11 @@ class PreventiveBan(commands.Cog):
         "help", description="Shows what this part of the Bot does, and how to use it."
     )
     async def preventive_ban_help(self, interaction: nextcord.Interaction):
-        pages = [
-            fancy_embed(
-                "What is the preventive ban feature?",
-                description="This section of the Discord Bot aims to reduce scams and spam, by banning known bad accounts even before they join.\n"
-                "This works thanks to all the verified Servers that use the Bot. When a person gets banned on multiple verified Servers that use the Bot, the Bot automatically bans that person on all other Servers.\n\n"
-                "This makes it significantly harder for Scammers and Spammers to harm a lot of Servers and People, because their Accounts become practically useless after just a few Servers.",
-            ),
-            fancy_embed(
-                "How does a Server become verified?",
-                description=f"First you need to use {self.apply_for_verification.get_mention()} to apply for verification. This has to be done by a Moderator or higher on the Server that should be verified.\n"
-                "After that the Bot will send you a Invite to the offical Server and a link to the Ticket on the Offical Discord for that Application. From here, you just wait until a Team member gets in touch with you.\n\n"
-                "Generally speaking there are no fixed requirements for becoming verified. As long as its an active Server with more than 100 people and that is older than a few months, it should be no problem.\n\n"
-                "The reason we have to verify Servers before they get access to this feature, is so that noone can make a bunch of fake Server, ban a person on these Servers and therefor ban a Person on hundreds of Servers. So this is to prevent abuse.",
-            ),
-            fancy_embed(
-                "What are the Commands i can use?",
-                description=f"So far, there is only one Command that is for Moderators and Admins of verified Servers:\n"
-                "This Commmand enables/disables automatic banning and contribution to the Network.",
-            ),  # TODO mention enable/disable command
-        ]
+        pages = generate_help_command_pages(
+            self.help_command_assets,
+            APPLY_FOR_VERIFICATION_COMMAND_MENTION=self.apply_for_verification.get_mention(),  # type: ignore
+            ENABLE_OR_DISABLE_PREVENTIVE_BAN_COMMAND_MENTION=self.enable_or_disable.get_mention(),  # type: ignore
+        )
 
         await CatalogView(pages).start(interaction)
 
@@ -280,6 +271,13 @@ class PreventiveBan(commands.Cog):
             return
 
         # TODO ask for website, social media, etc. and make a ticket for the application
+
+    @top_command.subcommand(
+        "enable-or-disable",
+        description="Toggles the preventive ban feature for this Server.",
+    )
+    async def enable_or_disable(self, interaction: nextcord.Interaction):
+        pass
 
 
 async def setup(bot):

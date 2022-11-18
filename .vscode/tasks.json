@@ -27,6 +27,7 @@
         "bot.py",
         "config",
         "data",
+        "assets",
         ".vscode",
         "cogs",
         "internal_tools"

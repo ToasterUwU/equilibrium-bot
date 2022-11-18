@@ -1,0 +1,9 @@
+First you need to use {APPLY_FOR_VERIFICATION_COMMAND_MENTION} to apply for verification. This has to be done by a Moderator or higher on the Server that should be verified.
+
+After that the Bot will send you a Invite to the offical Server and a link to the Ticket on the Offical Discord for that Application. From here, you just wait until a Team member gets in touch with you.
+
+
+Generally speaking there are no fixed requirements for becoming verified. As long as its an active Server with more than 100 people and that is older than a few months, it should be no problem.
+
+
+The reason we have to verify Servers before they get access to this feature, is so that noone can make a bunch of fake Server, ban a person on these Servers and therefor ban a Person on hundreds of Servers. So this is to prevent abuse.

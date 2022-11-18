@@ -8,6 +8,7 @@ from nextcord.ext import application_checks, commands
 
 from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
+from internal_tools.general import *
 
 _CHECKS = []
 
@@ -278,6 +279,8 @@ class Impersonation(commands.Cog):
 
         self.ILM = IllegalNameManager(self.bot)
 
+        self.help_command_assets = load_help_command_assets("assets/IMPERSONATION/HELP")
+
     async def cog_application_command_check(self, interaction: nextcord.Interaction):
         """
         Only Admins can use these commands.
@@ -336,7 +339,9 @@ class Impersonation(commands.Cog):
         "help", description="Explains what this does and how to use it."
     )
     async def impersonation_help(self, interaction: nextcord.Interaction):
-        pass  # TODO Help command for Impersonation Cog
+        pages = generate_help_command_pages(self.help_command_assets)
+
+        await CatalogView(pages).start(interaction)
 
     @top_command.subcommand(
         name="protect-user",

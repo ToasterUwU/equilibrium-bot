@@ -1,0 +1,6 @@
+This section of the Discord Bot aims to reduce scams and spam, by banning known bad accounts even before they join.
+
+This works thanks to all the verified Servers that use the Bot. When a person gets banned on multiple verified Servers that use the Bot, the Bot automatically bans that person on all other Servers.
+
+
+This makes it significantly harder for Scammers and Spammers to harm a lot of Servers and People, because their Accounts become practically useless after just a few Servers.

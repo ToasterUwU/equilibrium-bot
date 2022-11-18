@@ -1,0 +1,11 @@
+So far this Bot has two separate Features. One is public and can be used by anyone for any Server, the other one requires verification of the Server.
+
+**1. Impersonation Protection**
+This part of the Bot lets you protect People from being impersonated.
+Let me explain why you might want that: let's assume you have a big Server, with thousands of members. And this Server is about finances in some way. Something where people talk about money a lot. What a bad guy could do here, is make an Account that looks just like the Account of a staff member and then send private messages to other members, pretending to be part of the staff. They might say that they found a new investment opportunity and convince the victim to give them money so that they can 'invest it for them'. (This is something I saw happen. And yes, it worked on some people.)
+By protecting your staff from impersonation, no one will be able to pretend to be them, because this Bot bans everyone who tries.
+For a list of commands, please use: {IMPERSONATION_HELP_COMMAND_MENTION}
+
+**2. Preventive Ban**
+This is the Part of the Bot that needs verification of the Server you want to use it on. It bans known bad people (people that got banned on multiple servers) on all other servers, even before they join.
+To read more about this and find out how to verify your Server and start using this feature, please use: {PREVENTIVE_BAN_HELP_COMMAND_MENTION}

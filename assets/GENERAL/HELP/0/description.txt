@@ -1,0 +1,14 @@
+If you want Information about the Commands and Features of this Bot, please go to the next Page.
+
+Thanks for inviting Equilibriums Bot.
+
+Equilibrium started as an idea of Aki, the Owner and Creator of Equilibrium. (I'm writing this, so I'm gonna talk from the I perspective from now)
+Since my name starts with A, I'm often one of the first people to get messages from Scammers and I got frustrated with all these Scammers on Discord. I started programming little tools that fight against Scammers by attacking their infrastructure. A good example is these Websites that look like the login page of Discord or Steam but are not. These Websites try to steal login data, so what I did was pretty obvious. I programmed something that spams the Website with fake login data and therefore made the Database of the Scammers practically useless.
+They even had to take down the Website multiple times because of things like this. They even upgraded their security in hopes of locking me out. (Didn't work)
+
+Its not rare that I hear about people losing their accounts to some Scammer, so I decided to do something. I created Equilibrium, as the opposing force to the Scammers. (That's the reason for the name)
+
+Equilibrium is a Discord Server committed to cataloging Scams, warning Discord Users, preventing Scammers from scamming, and also getting Revenge for all those people that got scammed regardless.
+We have an Announcement channel that you can follow to hear about the newest scams. We will talk about how it works, how to identify it, and also how to waste the most time for those scammers.
+We are also making tools like the one I made for these websites. Just little tools that people can use to take down scammer's websites and other infrastucture.
+And like you already know, we also have this Discord Bot that bans known bad people even before they can join a Server and try to harm anyone, and also protects the staff from being impersonated.
