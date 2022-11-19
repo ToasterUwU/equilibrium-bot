@@ -12,3 +12,4 @@ config/GENERAL.json
 /config/TICKET_SYSTEM.json
 /data
 /config/VERIFICATION.json
+/config/PREVENTIVE_BAN.json

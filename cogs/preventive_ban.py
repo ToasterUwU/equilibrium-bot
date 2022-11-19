@@ -9,10 +9,7 @@ from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
 from internal_tools.general import *
 
-# TODO preventive ban logic
-# TODO ping/invite application creator when they join
-# TODO cancel application and archive ticket when application creator leaves
-# TODO add application_checks everywhere
+# TODO set default invite permissions
 
 
 class LinkCollector(nextcord.ui.Modal):
@@ -48,6 +45,8 @@ class PreventiveBan(commands.Cog):
                 "APPLICATIONS": {},
             },
         )
+
+        self.preventive_ban_records = JsonDictSaver("preventive_ban_records")
 
         self.help_command_assets = load_help_command_assets(
             "assets/PREVENTIVE_BAN/HELP"
@@ -85,6 +84,91 @@ class PreventiveBan(commands.Cog):
             )
 
     @commands.Cog.listener()
+    async def on_member_ban(self, guild: nextcord.Guild, user: nextcord.User):
+        if guild.id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]:
+            if user.id not in self.preventive_ban_records:
+                self.preventive_ban_records[user.id] = []
+
+            if guild.id not in self.preventive_ban_records[user.id]:
+                self.preventive_ban_records[user.id].append(guild.id)
+                self.preventive_ban_records.save()
+
+            ban_records = len(self.preventive_ban_records[user.id])
+            if (
+                ban_records >= CONFIG["PREVENTIVE_BAN"]["BAN_AT_HARD_LIMIT"]
+                or ban_records
+                >= len(self.preventive_ban_guilds["VERIFIED_GUILD_IDS"])
+                * CONFIG["PREVENTIVE_BAN"]["BAN_AT_PERCENT"]
+            ):
+                for g in self.bot.guilds:
+                    if g.id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]:
+                        if self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][g.id][
+                            "ENABLED"
+                        ]:
+                            try:
+                                await g.ban(
+                                    user,
+                                    reason=f"Preventive ban, based on {ban_records} reports.",
+                                )
+                            except:
+                                continue
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: nextcord.Member):
+        if member.guild.id == CONFIG["GENERAL"]["HOME_GUILD_ID"]:
+            application_key = None
+            for key, data in self.preventive_ban_guilds["APPLICATIONS"].items():
+                if member.id == data["CREATOR_ID"]:
+                    application_key = key
+
+                    ticket = await GetOrFetch.channel(
+                        member.guild, data["TICKET_CHANNEL_ID"]
+                    )
+                    if not isinstance(ticket, nextcord.Thread):
+                        return
+
+                    await ticket.send(
+                        embed=fancy_embed(
+                            "Creator of Application left.",
+                            description="Application is canceled and Ticket will be archived.",
+                        )
+                    )
+
+                    await ticket.edit(archived=True)
+
+            if application_key:
+                del self.preventive_ban_guilds["APPLICATIONS"][application_key]
+                self.preventive_ban_guilds.save()
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: nextcord.Member):
+        if member.guild.id == CONFIG["GENERAL"]["HOME_GUILD_ID"]:
+            for data in self.preventive_ban_guilds["APPLICATIONS"].values():
+                if member.id == data["CREATOR_ID"]:
+                    verified_role = await GetOrFetch.role(
+                        member.guild, CONFIG["GENERAL"]["VERIFIED_MEMBER_ROLE_ID"]
+                    )
+                    ambassador_role = await GetOrFetch.role(
+                        member.guild, CONFIG["GENERAL"]["SERVER_AMBASSADOR_ROLE_ID"]
+                    )
+                    if not verified_role or not ambassador_role:
+                        raise Exception("Well.. thats a Config problem :/")
+
+                    await member.add_roles(verified_role, ambassador_role)
+
+                    await asyncio.sleep(3)
+
+                    ticket = await GetOrFetch.channel(
+                        member.guild, data["TICKET_CHANNEL_ID"]
+                    )
+                    if not isinstance(ticket, nextcord.Thread):
+                        return
+
+                    await ticket.send(
+                        f"{member.mention} joined the Server. They are the Creator of this Application."
+                    )
+
+    @commands.Cog.listener()
     async def on_guild_remove(self, guild: nextcord.Guild):
         if guild.id in self.preventive_ban_guilds["APPLICATIONS"]:
             ticket_thread = await GetOrFetch.channel(
@@ -94,7 +178,14 @@ class PreventiveBan(commands.Cog):
                 ],
             )
             if isinstance(ticket_thread, nextcord.Thread):
-                await ticket_thread.edit(archived=True, locked=True)
+                await ticket_thread.send(
+                    embed=fancy_embed(
+                        "Guild of Application kicked Bot.",
+                        description="Application is canceled and Ticket will be archived.",
+                    )
+                )
+
+                await ticket_thread.edit(archived=True)
 
             del self.preventive_ban_guilds["APPLICATIONS"][guild.id]
 
@@ -195,6 +286,7 @@ class PreventiveBan(commands.Cog):
     @admin_guild_verfication_subcommand.subcommand(
         "approve", description="Approve a Server for using the preventive ban feature."
     )
+    @application_checks.bot_has_permissions(administrator=True)
     async def guild_verification_approve(
         self,
         interaction: nextcord.Interaction,
@@ -227,7 +319,9 @@ class PreventiveBan(commands.Cog):
         if isinstance(ticket, nextcord.Thread):
             if not ticket.archived:
                 await ticket.send(
-                    f"<@{self.preventive_ban_guilds['APPLICATIONS'][guild_id]['CREATOR_ID']}> Your Server has been approved. Enjoy the new Feature. This Ticket will be closed 5 minutes."
+                    f"<@{self.preventive_ban_guilds['APPLICATIONS'][guild_id]['CREATOR_ID']}> Your Server has been approved. Enjoy the new Feature.\n"
+                    "Make sure the Role of the Bot is above all the roles it should be able to ban on your Server (In the Server Settings, under Roles). If it isnt, it cant ban anyone.\n\n"
+                    "This Ticket will be closed 5 minutes."
                 )
 
         while guild_id in self.preventive_ban_guilds["APPLICATIONS"]:
@@ -237,9 +331,7 @@ class PreventiveBan(commands.Cog):
 
         self.preventive_ban_guilds.save()
 
-        await interaction.send(
-            embed=await self.guild_info_embed(guild_id, "Approved Guild")
-        )
+        await interaction.send(f"Approved Server. ( {guild_id} )")
 
         if isinstance(ticket, nextcord.Thread):
             await asyncio.sleep(300)
@@ -249,6 +341,7 @@ class PreventiveBan(commands.Cog):
     @admin_guild_verfication_subcommand.subcommand(
         "reject", description="Reject a Server for using the preventive ban feature."
     )
+    @application_checks.bot_has_permissions(administrator=True)
     async def guild_verification_reject(
         self,
         interaction: nextcord.Interaction,
@@ -289,9 +382,7 @@ class PreventiveBan(commands.Cog):
 
         self.preventive_ban_guilds.save()
 
-        await interaction.send(
-            embed=await self.guild_info_embed(guild_id, "Rejected Guild")
-        )
+        await interaction.send(f"Rejected Server. ( {guild_id} )")
 
         if isinstance(ticket, nextcord.Thread):
             await asyncio.sleep(300)
@@ -321,6 +412,9 @@ class PreventiveBan(commands.Cog):
     @top_command.subcommand(
         "apply-for-verification",
         description="This is needed to use this part of the Bot.",
+    )
+    @application_checks.bot_has_permissions(
+        manage_guild=True, ban_members=True, embed_links=True
     )
     async def apply_for_verification(self, interaction: nextcord.Interaction):
         if not interaction.guild_id:
@@ -406,12 +500,15 @@ class PreventiveBan(commands.Cog):
             await interaction.send(
                 f"Thanks for starting this verification process for your Server."
                 "\nPlease join the offical Server and check out your ticket with the following link and send a Message there, to let us know you are there."
-                f"\n\n{ticket.jump_url}\n{CONFIG['GENERAL']['OFFICAL_INVITE']}"
+                f"\n\n{ticket.jump_url}\n{CONFIG['GENERAL']['OFFICIAL_INVITE']}"
             )
 
     @top_command.subcommand(
         "enable-or-disable",
         description="Toggles the preventive ban feature for this Server.",
+    )
+    @application_checks.bot_has_permissions(
+        manage_guild=True, ban_members=True, embed_links=True
     )
     async def enable_or_disable(self, interaction: nextcord.Interaction):
         if not interaction.guild_id:

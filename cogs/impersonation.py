@@ -349,6 +349,7 @@ class Impersonation(commands.Cog):
         name="protect-user",
         description="Tell the Bot to protect a User from impersonation.",
     )
+    @application_checks.bot_has_permissions(ban_members=True)
     async def protect_user(
         self, interaction: nextcord.Interaction, user: nextcord.Member
     ):
@@ -360,6 +361,7 @@ class Impersonation(commands.Cog):
         name="dont-protect-user",
         description="Tell the Bot to stop protecting a User from impersonation.",
     )
+    @application_checks.bot_has_permissions(ban_members=True)
     async def deprotect_user(
         self, interaction: nextcord.Interaction, user: nextcord.Member
     ):
@@ -373,6 +375,7 @@ class Impersonation(commands.Cog):
         name="protect-role",
         description="Tell the Bot to protect everybody with a specific Role from impersonation.",
     )
+    @application_checks.bot_has_permissions(ban_members=True)
     async def protect_role(
         self, interaction: nextcord.Interaction, role: nextcord.Role
     ):
@@ -386,6 +389,7 @@ class Impersonation(commands.Cog):
         name="dont-protect-role",
         description="Tell the Bot to stop protecting everybody with a specific Role from impersonation.",
     )
+    @application_checks.bot_has_permissions(ban_members=True)
     async def deprotect_role(
         self, interaction: nextcord.Interaction, role: nextcord.Role
     ):
@@ -399,6 +403,7 @@ class Impersonation(commands.Cog):
         name="add-manual-name",
         description="Lets you manually add a name that will be illegal. This is meant for edge cases.",
     )
+    @application_checks.bot_has_permissions(ban_members=True)
     async def add_manual_name(self, interaction: nextcord.Interaction, name: str):
         if not interaction.guild:
             raise application_checks.ApplicationNoPrivateMessage()
@@ -411,6 +416,7 @@ class Impersonation(commands.Cog):
         name="rm-manual-name",
         description="Lets you remove a name that was manually added. This is meant for edge cases.",
     )
+    @application_checks.bot_has_permissions(ban_members=True)
     async def rm_manual_name(self, interaction: nextcord.Interaction, name: str):
         if not interaction.guild:
             raise application_checks.ApplicationNoPrivateMessage()
@@ -423,6 +429,7 @@ class Impersonation(commands.Cog):
         name="test-name",
         description="Lets you manually check if a user with a specific name would be banned or not.",
     )
+    @application_checks.bot_has_permissions(ban_members=True)
     async def test_name(self, interaction: nextcord.Interaction, name: str):
         if not interaction.guild:
             raise application_checks.ApplicationNoPrivateMessage()
@@ -438,6 +445,7 @@ class Impersonation(commands.Cog):
         name="report-name",
         description="Report a name that slipped past the Bot. So that Aki can find a method to make the bot recognize it.",
     )
+    @application_checks.bot_has_permissions(ban_members=True)
     async def report_name(
         self,
         interaction: nextcord.Interaction,
