@@ -1,6 +1,7 @@
 import asyncio
 from typing import Optional
 
+import aiohttp
 import nextcord
 from nextcord.ext import application_checks, commands
 
@@ -10,6 +11,7 @@ from internal_tools.discord import *
 from internal_tools.general import *
 
 # TODO set default invite permissions
+# TEST everything
 
 
 class LinkCollector(nextcord.ui.Modal):
@@ -46,6 +48,7 @@ class PreventiveBan(commands.Cog):
             },
         )
 
+        self.preventively_baned_users = JsonDictSaver("preventively_baned_users")
         self.preventive_ban_records = JsonDictSaver("preventive_ban_records")
 
         self.help_command_assets = load_help_command_assets(
@@ -83,6 +86,22 @@ class PreventiveBan(commands.Cog):
                 interaction.guild_id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]
             )
 
+    async def log_ban(self, guild_id: int, user_id: int):
+        if guild_id in self.preventive_ban_guilds["VERIFIED"]:
+            if self.preventive_ban_guilds["VERIFIED"][guild_id]["LOG_WEBHOOK_URL"]:
+                try:
+                    webhook = nextcord.Webhook.from_url(
+                        self.preventive_ban_guilds["VERIFIED"][guild_id][
+                            "LOG_WEBHOOK_URL"
+                        ],
+                        session=aiohttp.ClientSession(),
+                    )
+                    await webhook.send(
+                        f"Banned User with ID {user_id}, based on {len(self.preventive_ban_records[user_id])} reports."
+                    )
+                except:
+                    pass
+
     @commands.Cog.listener()
     async def on_member_ban(self, guild: nextcord.Guild, user: nextcord.User):
         if guild.id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]:
@@ -93,25 +112,31 @@ class PreventiveBan(commands.Cog):
                 self.preventive_ban_records[user.id].append(guild.id)
                 self.preventive_ban_records.save()
 
-            ban_records = len(self.preventive_ban_records[user.id])
-            if (
-                ban_records >= CONFIG["PREVENTIVE_BAN"]["BAN_AT_HARD_LIMIT"]
-                or ban_records
-                >= len(self.preventive_ban_guilds["VERIFIED_GUILD_IDS"])
-                * CONFIG["PREVENTIVE_BAN"]["BAN_AT_PERCENT"]
-            ):
-                for g in self.bot.guilds:
-                    if g.id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]:
-                        if self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][g.id][
-                            "ENABLED"
-                        ]:
-                            try:
-                                await g.ban(
-                                    user,
-                                    reason=f"Preventive ban, based on {ban_records} reports.",
-                                )
-                            except:
-                                continue
+            if user.id not in self.preventively_baned_users:
+                ban_records = len(self.preventive_ban_records[user.id])
+                if (
+                    ban_records >= CONFIG["PREVENTIVE_BAN"]["BAN_AT_HARD_LIMIT"]
+                    or ban_records
+                    >= len(self.preventive_ban_guilds["VERIFIED_GUILD_IDS"])
+                    * CONFIG["PREVENTIVE_BAN"]["BAN_AT_PERCENT"]
+                ):
+                    self.preventively_baned_users[user.id] = True
+                    self.preventively_baned_users.save()
+
+                    for g in self.bot.guilds:
+                        if g.id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]:
+                            if self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][g.id][
+                                "ENABLED"
+                            ]:
+                                if g.id not in self.preventive_ban_records[user.id]:
+                                    try:
+                                        await g.ban(
+                                            user,
+                                            reason=f"Preventive ban, based on {ban_records} reports.",
+                                        )
+                                        await self.log_ban(g.id, user.id)
+                                    except:
+                                        continue
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):
@@ -327,8 +352,10 @@ class PreventiveBan(commands.Cog):
         while guild_id in self.preventive_ban_guilds["APPLICATIONS"]:
             del self.preventive_ban_guilds["APPLICATIONS"][guild_id]
 
-        self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][guild_id] = {"ENABLED": True}
-
+        self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][guild_id] = {
+            "ENABLED": True,
+            "LOG_WEBHOOK_URL": None,
+        }
         self.preventive_ban_guilds.save()
 
         await interaction.send(f"Approved Server. ( {guild_id} )")
@@ -337,6 +364,18 @@ class PreventiveBan(commands.Cog):
             await asyncio.sleep(300)
 
             await ticket.edit(archived=True)
+
+        guild = await GetOrFetch.guild(self.bot, guild_id)
+        if not isinstance(guild, nextcord.Guild):
+            return
+
+        for user_id in self.preventively_baned_users.keys():
+            try:
+                snowflake = nextcord.Object(user_id)
+                await guild.ban(snowflake)
+                await self.log_ban(guild.id, user_id)
+            except:
+                continue
 
     @admin_guild_verfication_subcommand.subcommand(
         "reject", description="Reject a Server for using the preventive ban feature."
@@ -514,13 +553,44 @@ class PreventiveBan(commands.Cog):
         if not interaction.guild_id:
             raise application_checks.errors.ApplicationNoPrivateMessage()
 
-        self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][
-            interaction.guild_id
-        ] = not self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][interaction.guild_id]
+        self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][interaction.guild_id][
+            "ENABLED"
+        ] = not self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][interaction.guild_id][
+            "ENABLED"
+        ]
+        self.preventive_ban_guilds.save()
 
         await interaction.send(
             f"The Preventive ban feature is now: {'Enabled' if self.preventive_ban_guilds['VERIFIED_GUILD_IDS'][interaction.guild_id] else 'Disabled'}"
         )
+
+    @top_command.subcommand(
+        "set-log-webhook",
+        description="Give the Bot a Webhook URL to send log messages about preventive bans to.",
+    )
+    @application_checks.bot_has_permissions(
+        manage_guild=True, ban_members=True, embed_links=True
+    )
+    async def set_log_webhook(
+        self,
+        interaction: nextcord.Interaction,
+        webhook_url: str = nextcord.SlashOption(
+            "webhook-url",
+            description="The URL of the Webhook. Can be obtained with the 'Copy Webhook URL' button in the Webhook settings.",
+        ),
+    ):
+        try:
+            nextcord.Webhook.from_url(webhook_url, session=aiohttp.ClientSession())
+        except nextcord.errors.InvalidArgument:
+            await interaction.send("The URL you gave isnt a valid Webhook URL.")
+            return
+
+        self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][interaction.guild_id][
+            "LOG_WEBHOOK_URL"
+        ] = webhook_url
+        self.preventive_ban_guilds.save()
+
+        await interaction.send(f"Ok, will send log messages to: {webhook_url}")
 
 
 async def setup(bot):
