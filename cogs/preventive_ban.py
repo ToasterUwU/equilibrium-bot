@@ -10,9 +10,6 @@ from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
 from internal_tools.general import *
 
-# TODO set default invite permissions
-# TEST everything
-
 
 class LinkCollector(nextcord.ui.Modal):
     def __init__(self):
@@ -86,19 +83,24 @@ class PreventiveBan(commands.Cog):
                 interaction.guild_id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]
             )
 
-    async def log_ban(self, guild_id: int, user_id: int):
-        if guild_id in self.preventive_ban_guilds["VERIFIED"]:
-            if self.preventive_ban_guilds["VERIFIED"][guild_id]["LOG_WEBHOOK_URL"]:
+    async def log_ban(
+        self, guild_id: int, user_id: int, ban_records: Optional[int] = None
+    ):
+        if guild_id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]:
+            if self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][guild_id][
+                "LOG_WEBHOOK_URL"
+            ]:
                 try:
-                    webhook = nextcord.Webhook.from_url(
-                        self.preventive_ban_guilds["VERIFIED"][guild_id][
-                            "LOG_WEBHOOK_URL"
-                        ],
-                        session=aiohttp.ClientSession(),
-                    )
-                    await webhook.send(
-                        f"Banned User with ID {user_id}, based on {len(self.preventive_ban_records[user_id])} reports."
-                    )
+                    async with aiohttp.ClientSession() as session:
+                        webhook = nextcord.Webhook.from_url(
+                            self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][guild_id][
+                                "LOG_WEBHOOK_URL"
+                            ],
+                            session=session,
+                        )
+                        await webhook.send(
+                            f"Banned User with ID `{user_id}` ( <@{user_id}> ), based on {ban_records or len(self.preventive_ban_records[user_id])} reports."
+                        )
                 except:
                     pass
 
@@ -134,7 +136,9 @@ class PreventiveBan(commands.Cog):
                                             user,
                                             reason=f"Preventive ban, based on {ban_records} reports.",
                                         )
-                                        await self.log_ban(g.id, user.id)
+                                        await self.log_ban(
+                                            g.id, user.id, ban_records=ban_records
+                                        )
                                     except:
                                         continue
 
@@ -346,7 +350,7 @@ class PreventiveBan(commands.Cog):
                 await ticket.send(
                     f"<@{self.preventive_ban_guilds['APPLICATIONS'][guild_id]['CREATOR_ID']}> Your Server has been approved. Enjoy the new Feature.\n"
                     "Make sure the Role of the Bot is above all the roles it should be able to ban on your Server (In the Server Settings, under Roles). If it isnt, it cant ban anyone.\n\n"
-                    "This Ticket will be closed 5 minutes."
+                    "This Ticket will be closed in 5 minutes."
                 )
 
         while guild_id in self.preventive_ban_guilds["APPLICATIONS"]:
@@ -440,7 +444,7 @@ class PreventiveBan(commands.Cog):
         "help", description="Shows what this part of the Bot does, and how to use it."
     )
     async def preventive_ban_help(self, interaction: nextcord.Interaction):
-        pages = generate_help_command_pages(  # TODO check text
+        pages = generate_help_command_pages(
             self.help_command_assets,
             APPLY_FOR_VERIFICATION_COMMAND_MENTION=self.apply_for_verification.get_mention(),  # type: ignore
             ENABLE_OR_DISABLE_PREVENTIVE_BAN_COMMAND_MENTION=self.enable_or_disable.get_mention(),  # type: ignore
@@ -561,7 +565,7 @@ class PreventiveBan(commands.Cog):
         self.preventive_ban_guilds.save()
 
         await interaction.send(
-            f"The Preventive ban feature is now: {'Enabled' if self.preventive_ban_guilds['VERIFIED_GUILD_IDS'][interaction.guild_id] else 'Disabled'}"
+            f"The Preventive ban feature is now: {'Enabled' if self.preventive_ban_guilds['VERIFIED_GUILD_IDS'][interaction.guild_id]['ENABLED'] else 'Disabled'}"
         )
 
     @top_command.subcommand(
