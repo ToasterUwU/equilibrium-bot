@@ -1,3 +1,4 @@
-So far, there is only one Command that is for Moderators and Admins of verified Servers: {ENABLE_OR_DISABLE_PREVENTIVE_BAN_COMMAND_MENTION}
+So far, there are only two Commands that are for Moderators and Admins of verified Servers:
 
-This Command enables/disables automatic banning and contribution to the Network.
+{ENABLE_OR_DISABLE_PREVENTIVE_BAN_COMMAND_MENTION} This Command enables/disables automatic banning and contribution to the Network.
+{SET_LOG_WEBHOOK_COMMAND_MENTION} This Command allows you to give the Bot a Discord Webhook URL that it will send log messages about banned people to.

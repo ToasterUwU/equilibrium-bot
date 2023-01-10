@@ -446,8 +446,9 @@ class PreventiveBan(commands.Cog):
     async def preventive_ban_help(self, interaction: nextcord.Interaction):
         pages = generate_help_command_pages(
             self.help_command_assets,
-            APPLY_FOR_VERIFICATION_COMMAND_MENTION=self.apply_for_verification.get_mention(),  # type: ignore
-            ENABLE_OR_DISABLE_PREVENTIVE_BAN_COMMAND_MENTION=self.enable_or_disable.get_mention(),  # type: ignore
+            APPLY_FOR_VERIFICATION_COMMAND_MENTION=self.apply_for_verification.get_mention(),
+            ENABLE_OR_DISABLE_PREVENTIVE_BAN_COMMAND_MENTION=self.enable_or_disable.get_mention(),
+            SET_LOG_WEBHOOK_COMMAND_MENTION=self.set_log_webhook.get_mention(),
         )
 
         await CatalogView(pages).start(interaction)
