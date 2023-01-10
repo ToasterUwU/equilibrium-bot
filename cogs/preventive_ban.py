@@ -502,6 +502,21 @@ class PreventiveBan(commands.Cog):
 
         try:
             member = await home_guild.fetch_member(interaction.user.id)
+
+            verified_role = await GetOrFetch.role(
+                member.guild, CONFIG["GENERAL"]["VERIFIED_MEMBER_ROLE_ID"]
+            )
+            ambassador_role = await GetOrFetch.role(
+                member.guild, CONFIG["GENERAL"]["SERVER_AMBASSADOR_ROLE_ID"]
+            )
+
+            if not verified_role or not ambassador_role:
+                raise Exception("Config Problem, notify staff please.")
+
+            await member.add_roles(verified_role, ambassador_role)
+
+            await asyncio.sleep(3)
+
         except nextcord.errors.HTTPException:
             member = None
 
