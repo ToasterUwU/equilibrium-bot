@@ -4,7 +4,7 @@
   "CATEGORIES": {
     "Other": {
       "SYSTEM_CATEGORY": false,
-      "DESCRIPTION": "For everything that is covered by the Forums",
+      "DESCRIPTION": "For everything that is NOT covered by the Forums",
       "EMOJI": null,
       "CHANNEL_ID": 1042629611089039471,
       "FIRST_RESPONDER_ROLE_ID": 1041950366058680340,
