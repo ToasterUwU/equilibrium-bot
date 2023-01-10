@@ -504,10 +504,10 @@ class PreventiveBan(commands.Cog):
             member = await home_guild.fetch_member(interaction.user.id)
 
             verified_role = await GetOrFetch.role(
-                member.guild, CONFIG["GENERAL"]["VERIFIED_MEMBER_ROLE_ID"]
+                home_guild, CONFIG["GENERAL"]["VERIFIED_MEMBER_ROLE_ID"]
             )
             ambassador_role = await GetOrFetch.role(
-                member.guild, CONFIG["GENERAL"]["SERVER_AMBASSADOR_ROLE_ID"]
+                home_guild, CONFIG["GENERAL"]["SERVER_AMBASSADOR_ROLE_ID"]
             )
 
             if not verified_role or not ambassador_role:
