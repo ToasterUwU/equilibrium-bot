@@ -5,7 +5,7 @@
   "MEMBERS_INTENT": true,
   "PRESENCE_INTENT": false,
   "MESSAGE_CONTENT_INTENT": false,
-  "EMBED_COLOR": "#F7A8B8",
+  "EMBED_COLOR": "#5865F2",
   "OWNER_COG_GUILD_IDS": [
     912774585773080606,
     912494748588212265
@@ -14,5 +14,11 @@
   "HOME_GUILD_ID": 912494748588212265,
   "VERIFIED_MEMBER_ROLE_ID": 1041848382278340609,
   "SERVER_AMBASSADOR_ROLE_ID": 1041944376680648704,
-  "OFFICIAL_INVITE": "https://discord.gg/e9TWqskVhQ"
+  "OFFICIAL_INVITE": "https://discord.gg/e9TWqskVhQ",
+  "DONATION_FIELDS": {
+    "Who am I?": "My name is Aki, you can find me on Discord as 'Aki ToasterUwU#0001'",
+    "Patreon": "https://www.patreon.com/ToasterUwU",
+    "Bitcoin": "bc1qu9r7ytjy8vpx9skyx5yrw3rhktdg86sw6lukvz",
+    "Ethereum (ERC-20)": "0x009167F0987B45a2Ab58075d283B11314fBE8AC5"
+  }
 }
