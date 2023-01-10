@@ -262,6 +262,9 @@ class IllegalNameManager(JsonDictSaver):
             self[guild.id]["MANUAL_NAMES"].append(name)
             self.save()
 
+    def list_manual_names(self, guild: nextcord.Guild):
+        return self[guild.id]["MANUAL_NAMES"]
+
     def rm_manual_name(self, guild: nextcord.Guild, name: str):
         if name in self[guild.id]["MANUAL_NAMES"]:
             self.illegal_names[guild.id].remove(name)
@@ -340,8 +343,15 @@ class Impersonation(commands.Cog):
     )
     async def impersonation_help(self, interaction: nextcord.Interaction):
         pages = generate_help_command_pages(
-            self.help_command_assets
-        )  # TODO add help text
+            self.help_command_assets,
+            PROTECT_ROLE_COMMAND_MENTION=self.protect_role.get_mention(),
+            DEPROTECT_ROLE_COMMAND_MENTION=self.deprotect_role.get_mention(),
+            PROTECT_USER_COMMAND_MENTION=self.protect_user.get_mention(),
+            DEPROTECT_USER_COMMAND_MENTION=self.deprotect_user.get_mention(),
+            ADD_MANUAL_NAME_COMMAND_MENTION=self.add_manual_name.get_mention(),
+            RM_MANUAL_NAME_COMMAND_MENTION=self.rm_manual_name.get_mention(),
+            LIST_MANUAL_NAMES_COMMAND_MENTION=self.list_manual_names.get_mention(),
+        )
 
         await CatalogView(pages).start(interaction)
 
@@ -411,6 +421,23 @@ class Impersonation(commands.Cog):
         self.ILM.add_manual_name(interaction.guild, name)
 
         await interaction.send(f"'{name}' is now a illegal name.")
+
+    @top_command.subcommand(
+        name="list-manual-names",
+        description="Shows all the manually added names.",
+    )
+    @application_checks.bot_has_permissions(ban_members=True)
+    async def list_manual_names(self, interaction: nextcord.Interaction):
+        if not interaction.guild:
+            raise application_checks.ApplicationNoPrivateMessage()
+
+        names = self.ILM.list_manual_names(interaction.guild)
+
+        await interaction.send(
+            embed=fancy_embed(
+                "Manually added protected Names", description="\n".join(names)
+            )
+        )
 
     @top_command.subcommand(
         name="rm-manual-name",
