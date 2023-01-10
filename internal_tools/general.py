@@ -50,5 +50,5 @@ def generate_help_command_pages(
 ):
     return [
         fancy_embed(**x)
-        for x in format_every_string(help_command_assets, kwargs=kwargs).values()
+        for x in format_every_string(help_command_assets, **kwargs).values()
     ]
