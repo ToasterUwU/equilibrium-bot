@@ -1,3 +1,3 @@
 So far, there is only one Command that is for Moderators and Admins of verified Servers: {ENABLE_OR_DISABLE_PREVENTIVE_BAN_COMMAND_MENTION}
 
-This Commmand enables/disables automatic banning and contribution to the Network.
+This Command enables/disables automatic banning and contribution to the Network.

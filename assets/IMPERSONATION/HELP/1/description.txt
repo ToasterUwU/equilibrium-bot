@@ -1,0 +1,21 @@
+**1. Understand the way the Bot thinks**
+The Bot takes 3 types of "things" to protect. Roles, Members, Names.
+It protects all names it gets by making a list like this: "For every Member with any role of the protected roles, protect username and nickname. For every Member of the protected Members, protect username and nickname. Protect every additional manually added name."
+
+**2. Protect Groups of people**
+If you want to protect a Group of people, you can protect a role that only these people have. That could the the "@Team" role, or maybe the "@Admin" role. Whatever works for you. You can also protect multiple roles.
+To protect a role, use {PROTECT_ROLE_COMMAND_MENTION}
+To stop protecting a role, use {DEPROTECT_ROLE_COMMAND_MENTION}
+
+**3. Protect a single Member**
+If you have someone who isn't part of a role like "@Admin", but you want to protect their name(s) as well, you can protect an individual Member.
+To protect a single person, use {PROTECT_USER_COMMAND_MENTION}
+To stop protecting a single person, use {DEPROTECT_USER_COMMAND_MENTION}
+
+**4. Protect a different Name**
+This is meant only for edge cases that are not covered by the other two Options.
+One good example of what this is for is to assume we have an Admin called "Aki (Creator) / ToasterUwU" (that's me) and now try to think like a scammer. A scammer might get the idea of using just "Aki (Creator)" or just "ToasterUwU" as a name, to get around the impersonation protection.
+In cases like this, you can manually enter a name to protect. In this case, we would manually add both "Aki (Creator)" and "ToasterUwU".
+To protect a name manually, use {ADD_MANUAL_NAME_COMMAND_MENTION}
+To stop protecting a name manually, use {RM_MANUAL_NAME_COMMAND_MENTION}
+To see all manually protected names, use {LIST_MANUAL_NAMES_COMMAND_MENTION}

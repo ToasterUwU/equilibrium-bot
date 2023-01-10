@@ -7,5 +7,5 @@ By protecting your staff from impersonation, no one will be able to pretend to b
 For a list of commands, please use: {IMPERSONATION_HELP_COMMAND_MENTION}
 
 **2. Preventive Ban**
-This is the Part of the Bot that needs verification of the Server you want to use it on. It bans known bad people (people that got banned on multiple servers) on all other servers, even before they join.
+This is the Part of the Bot that needs verification of the Server you want to use it on. It bans known bad people (people that got banned on multiple servers) on all other servers, even before they join. After all, why would you give someone a chance on your server, if they already got banned by more than 5 servers that all had to prove they are real community servers?
 To read more about this and find out how to verify your Server and start using this feature, please use: {PREVENTIVE_BAN_HELP_COMMAND_MENTION}

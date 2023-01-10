@@ -1,0 +1,6 @@
+This section of the Discord Bot aims to prevent scams, by banning accounts that try to look like the account of someone trustworthy on the Server, like an Admin or Moderator.
+
+The way it works is pretty simple. You tell the Bot something like this, for example: "Protect all members of the @Admin role. Also protect @Alex and @Stacy, and the name 'Founder'".
+The Bot will dynamically detect what names are used by protected people and will protect these names + the manually added names.
+
+To learn how to tell the Bot who and what should be protected, please go to the next page.
