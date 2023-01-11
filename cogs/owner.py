@@ -15,20 +15,17 @@ class Owner(commands.Cog):
         """
         You need to be the Owner of the Bot to use this.
         """
-        if interaction.user:
-            if isinstance(interaction.user, nextcord.Member):
-                user = interaction.user._user
-            else:
-                user = interaction.user
-
-            return await self.bot.is_owner(user)
-        else:
+        if interaction.user == None:
             return False
+
+        return await self.bot.is_owner(interaction.user)  # type: ignore
 
     @nextcord.slash_command(
         name="play",
         description="Sets a 'playing' Status",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def play_status(
         self,
@@ -47,6 +44,8 @@ class Owner(commands.Cog):
         name="watch",
         description="Sets a 'watching' Status",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def watch_status(
         self,
@@ -67,6 +66,8 @@ class Owner(commands.Cog):
         name="listen",
         description="Sets a 'listening' Status",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def listen_status(
         self,
@@ -103,6 +104,8 @@ class Owner(commands.Cog):
         name="load",
         description="Loads a Cog",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def load_cog(
         self,
@@ -128,6 +131,8 @@ class Owner(commands.Cog):
         name="unload",
         description="Loads a Cog",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def unload_cog(
         self,
@@ -153,6 +158,8 @@ class Owner(commands.Cog):
         name="reload",
         description="Reloads a Cog",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def reload_cog(
         self,
@@ -174,6 +181,18 @@ class Owner(commands.Cog):
             await interaction.send(f"**`ERROR:`** {type(e).__name__} - {e}")
         else:
             await interaction.send("Done", ephemeral=True)
+
+    @nextcord.slash_command(
+        "q-and-a",
+        description="Create a Q and A Message here.",
+        guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
+    )
+    async def q_and_a(self, interaction: nextcord.Interaction, q: str, a: str):
+        await interaction.send("On it.", ephemeral=True)
+
+        await interaction.channel.send(embed=fancy_embed(f"Q: {q}", f"**A:** {a}"))  # type: ignore
 
 
 async def setup(bot):
