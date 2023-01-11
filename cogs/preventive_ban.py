@@ -485,6 +485,8 @@ class PreventiveBan(commands.Cog):
 
         link_collector = LinkCollector()
         await interaction.response.send_modal(link_collector)
+        if not interaction.response.is_done():
+            await interaction.send("Collecting Infos.", ephemeral=True)
 
         while not link_collector.is_finished():
             await asyncio.sleep(1)
