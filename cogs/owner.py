@@ -246,6 +246,60 @@ class Owner(commands.Cog):
             )
         )
 
+    @nextcord.slash_command(
+        "stats",
+        description="Show Stats of the Bot.",
+        guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
+    )
+    async def stats(
+        self,
+        interaction: nextcord.Interaction,
+    ):
+        preventive_ban_cog = self.bot.get_cog("PreventiveBan")
+        preventive_ban_guilds = preventive_ban_cog.preventive_ban_guilds  # type: ignore
+        preventively_baned_users = preventive_ban_cog.preventively_baned_users  # type: ignore
+        preventive_ban_records = preventive_ban_cog.preventive_ban_records  # type: ignore
+
+        illegal_name_manager = self.bot.get_cog("Impersonation").ILM  # type: ignore
+
+        fields = {
+            "Servers": len(self.bot.guilds),
+            "Preventive Ban Servers": len(
+                [
+                    i
+                    for i in preventive_ban_guilds["VERIFIED_GUILD_IDS"]
+                    if preventive_ban_guilds["VERIFIED_GUILD_IDS"][i]["ENABLED"]
+                ]
+            ),
+            "Preventively banned Users": len(preventively_baned_users),
+            "Preventive Ban reported Users": len(preventive_ban_records),
+            "Preventive Ban reports": len(
+                [item for sublist in preventive_ban_records for item in sublist]
+            ),
+            "Impersonation Protection Servers": len(
+                [
+                    i
+                    for i in illegal_name_manager
+                    if (
+                        illegal_name_manager[i]["ROLE_IDS"] != []
+                        and illegal_name_manager[i]["USER_IDS"] != []
+                        and illegal_name_manager[i]["MANUAL_NAMES"] != []
+                    )
+                ]
+            ),
+        }
+
+        await interaction.send(
+            embed=fancy_embed(
+                "Stats",
+                fields=fields,
+                inline=False,
+                thumbnail_url=self.bot.user.avatar.url,  # type: ignore
+            )
+        )
+
 
 async def setup(bot):
     bot.add_cog(Owner(bot))
