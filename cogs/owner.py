@@ -264,6 +264,16 @@ class Owner(commands.Cog):
 
         illegal_name_manager = self.bot.get_cog("Impersonation").ILM  # type: ignore
 
+        impersonation_protection_servers = []
+        for guild_id, config in illegal_name_manager.items():
+            for sublist in config.values():
+                if len(sublist) != 0:
+                    break
+            else:
+                continue
+
+            impersonation_protection_servers.append(guild_id)
+
         fields = {
             "Servers": len(self.bot.guilds),
             "Preventive Ban Servers": len(
@@ -276,19 +286,13 @@ class Owner(commands.Cog):
             "Preventively banned Users": len(preventively_baned_users),
             "Preventive Ban reported Users": len(preventive_ban_records),
             "Preventive Ban reports": len(
-                [item for sublist in preventive_ban_records for item in sublist]
-            ),
-            "Impersonation Protection Servers": len(
                 [
-                    i
-                    for i in illegal_name_manager
-                    if (
-                        illegal_name_manager[i]["ROLE_IDS"] != []
-                        and illegal_name_manager[i]["USER_IDS"] != []
-                        and illegal_name_manager[i]["MANUAL_NAMES"] != []
-                    )
+                    item
+                    for sublist in preventive_ban_records.values()
+                    for item in sublist
                 ]
             ),
+            "Impersonation Protection Servers": len(impersonation_protection_servers),
         }
 
         await interaction.send(
