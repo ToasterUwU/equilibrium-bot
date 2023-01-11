@@ -221,6 +221,9 @@ class Verification(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
+        if member.guild.id == CONFIG["GENERAL"]["HOME_GUILD_ID"]:
+            return
+
         if member.bot:
             return
 
