@@ -1,10 +1,40 @@
+import asyncio
 import os
+from typing import Optional
 
 import nextcord
 from nextcord.ext import commands
 
 from internal_tools.configuration import CONFIG
 from internal_tools.discord import *
+
+
+class QandACollector(nextcord.ui.Modal):
+    def __init__(self):
+        super().__init__(
+            "Enter Q and A data below.",
+            timeout=1800,
+        )
+
+        self.question_input = nextcord.ui.TextInput(
+            "Question", style=nextcord.TextInputStyle.paragraph, min_length=10
+        )
+        self.add_item(self.question_input)
+
+        self.answer_input = nextcord.ui.TextInput(
+            "Answer", style=nextcord.TextInputStyle.paragraph, min_length=10
+        )
+        self.add_item(self.answer_input)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        self.question = self.question_input.value
+        self.answer = self.answer_input.value
+
+        await interaction.send(
+            "Info collected. This might take a Moment...", ephemeral=True
+        )
+
+        self.stop()
 
 
 class Owner(commands.Cog):
@@ -189,10 +219,32 @@ class Owner(commands.Cog):
         dm_permission=False,
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
-    async def q_and_a(self, interaction: nextcord.Interaction, q: str, a: str):
-        await interaction.send("On it.", ephemeral=True)
+    async def q_and_a(
+        self,
+        interaction: nextcord.Interaction,
+        screenshot: Optional[nextcord.Attachment] = None,
+    ):
+        if not isinstance(interaction.channel, nextcord.abc.MessageableChannel):
+            await interaction.send(
+                "Cant do that here"
+            )  # cant do this either, but its not possible to get here anyways.. unless it shouldnt be
+            return
 
-        await interaction.channel.send(embed=fancy_embed(f"Q: {q}", f"**A:** {a}"))  # type: ignore
+        qanda_collector = QandACollector()
+        await interaction.response.send_modal(qanda_collector)
+        if not interaction.response.is_done():
+            await interaction.send("Collecting Infos.", ephemeral=True)
+
+        while not qanda_collector.is_finished():
+            await asyncio.sleep(1)
+
+        await interaction.channel.send(
+            embed=fancy_embed(
+                f"Q: {qanda_collector.question}",
+                f"**A:** {qanda_collector.answer}",
+                image_url=screenshot.url if screenshot else None,
+            )
+        )
 
 
 async def setup(bot):
