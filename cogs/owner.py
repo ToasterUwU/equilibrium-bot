@@ -224,7 +224,7 @@ class Owner(commands.Cog):
         interaction: nextcord.Interaction,
         screenshot: Optional[nextcord.Attachment] = None,
     ):
-        if not isinstance(interaction.channel, nextcord.abc.MessageableChannel):
+        if not isinstance(interaction.channel, nextcord.abc.Messageable):
             await interaction.send(
                 "Cant do that here"
             )  # cant do this either, but its not possible to get here anyways.. unless it shouldnt be
