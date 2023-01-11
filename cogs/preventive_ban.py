@@ -435,7 +435,7 @@ class PreventiveBan(commands.Cog):
     @nextcord.slash_command(
         "preventive-ban",
         dm_permission=False,
-        default_member_permissions=nextcord.Permissions(manage_messages=True),
+        default_member_permissions=nextcord.Permissions(ban_members=True),
     )
     async def top_command(self, interaction: nextcord.Interaction):
         pass

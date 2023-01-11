@@ -333,7 +333,7 @@ class Impersonation(commands.Cog):
         name="impersonation",
         description="Under this command you can find everything the bot can do against impersonation.",
         dm_permission=False,
-        default_member_permissions=nextcord.Permissions(administrator=True),
+        default_member_permissions=nextcord.Permissions(ban_members=True),
     )
     async def top_command(self, interaction: nextcord.Interaction):
         pass
