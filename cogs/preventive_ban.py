@@ -28,7 +28,7 @@ class LinkCollector(nextcord.ui.Modal):
     async def callback(self, interaction: nextcord.Interaction):
         self.value = self.input.value
 
-        await interaction.send("Info collected.", ephemeral=True)
+        await interaction.send("Info collected. This might take a Moment...")
 
         self.stop()
 
