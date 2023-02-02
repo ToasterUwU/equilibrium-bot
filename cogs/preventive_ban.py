@@ -84,7 +84,11 @@ class PreventiveBan(commands.Cog):
             )
 
     async def log_ban(
-        self, guild_id: int, user_id: int, ban_records: Optional[int] = None
+        self,
+        guild_id: int,
+        user_id: int,
+        user_name: Optional[str] = None,
+        ban_records: Optional[int] = None,
     ):
         if guild_id in self.preventive_ban_guilds["VERIFIED_GUILD_IDS"]:
             if self.preventive_ban_guilds["VERIFIED_GUILD_IDS"][guild_id][
@@ -99,7 +103,7 @@ class PreventiveBan(commands.Cog):
                             session=session,
                         )
                         await webhook.send(
-                            f"Banned User with ID `{user_id}` ( <@{user_id}> ), based on {ban_records or len(self.preventive_ban_records[user_id])} reports."
+                            f"Banned User with ID `{user_id}` ( {user_name + ' / ' if user_name else ''}<@{user_id}> ), based on {ban_records or len(self.preventive_ban_records[user_id])} reports."
                         )
                 except:
                     pass
@@ -137,7 +141,10 @@ class PreventiveBan(commands.Cog):
                                             reason=f"Preventive ban, based on {ban_records} reports.",
                                         )
                                         await self.log_ban(
-                                            g.id, user.id, ban_records=ban_records
+                                            g.id,
+                                            user.id,
+                                            user_name=str(user),
+                                            ban_records=ban_records,
                                         )
                                     except:
                                         continue
