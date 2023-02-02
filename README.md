@@ -21,7 +21,7 @@ But not really, since it does more than show a good structure that you can repla
 ## Things to know before using
 
 1. Cogs that start with _ are not loaded on startup and are hidden from autocomplete in the Owner Cog (Thats how you disable a Cog)
-2. The doc string of each Cogs cog_application_command_check is used as a text for error handling when someone is not allowed to use a Command. (Set it to something that explains whats needed to pass the check)
+2. The doc string of each Cogs cog_application_command_check is used as a text for error handling when someone is not allowed to use a Command. (Set it to something that explains what's needed to pass the check)
 3. Always put a default value config in the default folder. The used configs are not meant to be created by hand.
 4. In the GENERAL.json config file, you can set an error webhook URL. That's needed if you want exception traces sent to discord somewhere.
 5. Owner Commands only appear in the Server(s) with their IDs in the OWNER_COG_GUILD_IDS list in the GENERAL.json config. (The standard one is my private testing server)
