@@ -3,7 +3,7 @@ from typing import Callable, List
 import aiohttp
 import Levenshtein
 import nextcord
-from discord import SlashOption
+from nextcord import SlashOption
 from nextcord.ext import application_checks, commands
 
 from internal_tools.configuration import CONFIG, JsonDictSaver
