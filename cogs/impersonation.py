@@ -5,6 +5,7 @@ import Levenshtein
 import nextcord
 from nextcord import SlashOption
 from nextcord.ext import application_checks, commands
+from unidecode import unidecode
 
 from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
@@ -20,7 +21,7 @@ def name_check(func: Callable):
 
 class NameIllegalChecker:
     def __init__(self, name: str, illegal_names: List[str]) -> None:
-        self.name = name.casefold()
+        self.name = unidecode(name).casefold()
         self.illegal_names = [x.casefold() for x in illegal_names]
 
     @name_check
