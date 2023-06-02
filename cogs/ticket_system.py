@@ -100,7 +100,7 @@ class TicketControls(nextcord.ui.View):
         except:
             pass
 
-        await interaction_channel.edit(archived=True)
+        await interaction_channel.edit(archived=True, locked=True)
 
     @nextcord.ui.button(
         label="(Un)Claim Ticket",
@@ -338,7 +338,6 @@ class TicketSystem(commands.Cog):
 
         await thread.edit(
             name=f"Ticket-{self.get_ticket_id(thread.id)}",
-            locked=True,
             invitable=True if self.private_threads else nextcord.utils.MISSING,
             auto_archive_duration=archive_duration,
         )
