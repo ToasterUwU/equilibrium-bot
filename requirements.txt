@@ -1,4 +1,4 @@
-nextcord[speed, voice]  == 2.6.*
+nextcord[speed, voice]  @ git+https://github.com/ToasterUwU/nextcord.git@display_name-behaviour-correction
 orjson                  == 3.9.*
 aiohttp                 == 3.8.*
 Levenshtein             == 0.23.*
