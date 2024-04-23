@@ -5,7 +5,7 @@ from typing import Optional
 import nextcord
 from nextcord.ext import commands
 
-from internal_tools.configuration import CONFIG
+from internal_tools.configuration import CONFIG, JsonDictSaver
 from internal_tools.discord import *
 
 
@@ -40,6 +40,10 @@ class QandACollector(nextcord.ui.Modal):
 class Owner(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+        self.rejected_servers = JsonDictSaver(
+            "rejected_servers", default={"SERVER_IDS": []}
+        )
 
     async def cog_application_command_check(self, interaction: nextcord.Interaction):
         """
@@ -304,6 +308,44 @@ class Owner(commands.Cog):
             )
         )
 
+    @nextcord.slash_command(
+        "refuse-service-to-server",
+        description="Leave a Server and refuse joining it ever again.",
+        guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
+    )
+    async def refuse_service(
+        self, interaction: nextcord.Interaction, server: nextcord.Guild
+    ):
+        await server.leave()
+
+        self.rejected_servers["SERVER_IDS"].append(server.id)
+        self.rejected_servers.save()
+
+        await interaction.send(f"Refusing Service to {server.name}")
+
+    @nextcord.slash_command(
+        "stop-refusing-server",
+        description="Takes a Server of the refusal list.",
+        guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
+        dm_permission=False,
+        default_member_permissions=nextcord.Permissions(administrator=True),
+    )
+    async def setop_refusing(
+        self, interaction: nextcord.Interaction, server: nextcord.Guild
+    ):
+        while server.id in self.rejected_servers["SERVER_IDS"]:
+            self.rejected_servers["SERVER_IDS"].remove(server.id)
+
+        self.rejected_servers.save()
+
+        await interaction.send(f"No longer refusing Service to {server.name}")
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild:nextcord.Guild):
+        if guild.id in self.rejected_servers["SERVER_IDS"]:
+            await guild.leave()
 
 async def setup(bot):
     bot.add_cog(Owner(bot))
