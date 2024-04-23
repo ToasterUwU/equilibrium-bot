@@ -315,9 +315,16 @@ class Owner(commands.Cog):
         dm_permission=False,
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
-    async def refuse_service(
-        self, interaction: nextcord.Interaction, server: nextcord.Guild
-    ):
+    async def refuse_service(self, interaction: nextcord.Interaction, server_id: str):
+        if not server_id.isnumeric():
+            await interaction.send("Server ID is not a number")
+            return
+
+        server = nextcord.utils.get(self.bot.guilds, id=server_id)
+        if server is None:
+            await interaction.send("Bot isnt on the Server")
+            return
+
         await server.leave()
 
         self.rejected_servers["SERVER_IDS"].append(server.id)
@@ -332,9 +339,16 @@ class Owner(commands.Cog):
         dm_permission=False,
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
-    async def setop_refusing(
-        self, interaction: nextcord.Interaction, server: nextcord.Guild
-    ):
+    async def setop_refusing(self, interaction: nextcord.Interaction, server_id: str):
+        if not server_id.isnumeric():
+            await interaction.send("Server ID is not a number")
+            return
+
+        server = nextcord.utils.get(self.bot.guilds, id=server_id)
+        if server is None:
+            await interaction.send("Bot isnt on the Server")
+            return
+
         while server.id in self.rejected_servers["SERVER_IDS"]:
             self.rejected_servers["SERVER_IDS"].remove(server.id)
 
@@ -343,9 +357,10 @@ class Owner(commands.Cog):
         await interaction.send(f"No longer refusing Service to {server.name}")
 
     @commands.Cog.listener()
-    async def on_guild_join(self, guild:nextcord.Guild):
+    async def on_guild_join(self, guild: nextcord.Guild):
         if guild.id in self.rejected_servers["SERVER_IDS"]:
             await guild.leave()
+
 
 async def setup(bot):
     bot.add_cog(Owner(bot))
