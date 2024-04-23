@@ -319,8 +319,10 @@ class Owner(commands.Cog):
         if not server_id.isnumeric():
             await interaction.send("Server ID is not a number")
             return
+        else:
+            guild_id = int(server_id)
 
-        server = nextcord.utils.get(self.bot.guilds, id=server_id)
+        server = nextcord.utils.get(self.bot.guilds, id=guild_id)
         if server is None:
             await interaction.send("Bot isnt on the Server")
             return
@@ -343,8 +345,10 @@ class Owner(commands.Cog):
         if not server_id.isnumeric():
             await interaction.send("Server ID is not a number")
             return
+        else:
+            guild_id = int(server_id)
 
-        server = nextcord.utils.get(self.bot.guilds, id=server_id)
+        server = nextcord.utils.get(self.bot.guilds, id=guild_id)
         if server is None:
             await interaction.send("Bot isnt on the Server")
             return
