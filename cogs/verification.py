@@ -258,7 +258,7 @@ class Verification(commands.Cog):
     @nextcord.slash_command(
         "verification",
         default_member_permissions=nextcord.Permissions(administrator=True),
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         guild_ids=[CONFIG["GENERAL"]["HOME_GUILD_ID"]],
     )
     async def verication_top_command(self, interaction: nextcord.Interaction):

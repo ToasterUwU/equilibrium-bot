@@ -535,7 +535,7 @@ class TicketSystem(commands.Cog):
     @nextcord.slash_command(
         "ticket-system",
         default_member_permissions=nextcord.Permissions(administrator=True),
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         guild_ids=[CONFIG["GENERAL"]["HOME_GUILD_ID"]],
     )
     async def top_command(self, interaction: nextcord.Interaction):

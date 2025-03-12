@@ -58,7 +58,7 @@ class Owner(commands.Cog):
         name="play",
         description="Sets a 'playing' Status",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def play_status(
@@ -78,7 +78,7 @@ class Owner(commands.Cog):
         name="watch",
         description="Sets a 'watching' Status",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def watch_status(
@@ -100,7 +100,7 @@ class Owner(commands.Cog):
         name="listen",
         description="Sets a 'listening' Status",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def listen_status(
@@ -138,7 +138,7 @@ class Owner(commands.Cog):
         name="load",
         description="Loads a Cog",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def load_cog(
@@ -165,7 +165,7 @@ class Owner(commands.Cog):
         name="unload",
         description="Loads a Cog",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def unload_cog(
@@ -192,7 +192,7 @@ class Owner(commands.Cog):
         name="reload",
         description="Reloads a Cog",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def reload_cog(
@@ -220,7 +220,7 @@ class Owner(commands.Cog):
         "q-and-a",
         description="Create a Q and A Message here.",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def q_and_a(
@@ -254,7 +254,7 @@ class Owner(commands.Cog):
         "stats",
         description="Show Stats of the Bot.",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def stats(
@@ -312,7 +312,7 @@ class Owner(commands.Cog):
         "refuse-service-to-server",
         description="Leave a Server and refuse joining it ever again.",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def refuse_service(self, interaction: nextcord.Interaction, server_id: str):
@@ -338,7 +338,7 @@ class Owner(commands.Cog):
         "stop-refusing-server",
         description="Takes a Server of the refusal list.",
         guild_ids=CONFIG["GENERAL"]["OWNER_COG_GUILD_IDS"],
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
     )
     async def setop_refusing(self, interaction: nextcord.Interaction, server_id: str):

@@ -234,7 +234,7 @@ class PreventiveBan(commands.Cog):
 
     @nextcord.slash_command(
         "admin-preventive-ban",
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(administrator=True),
         guild_ids=[CONFIG["GENERAL"]["HOME_GUILD_ID"]],
     )
@@ -441,7 +441,7 @@ class PreventiveBan(commands.Cog):
 
     @nextcord.slash_command(
         "preventive-ban",
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(ban_members=True),
     )
     async def top_command(self, interaction: nextcord.Interaction):

@@ -333,7 +333,7 @@ class Impersonation(commands.Cog):
     @nextcord.slash_command(
         name="impersonation",
         description="Under this command you can find everything the bot can do against impersonation.",
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
         default_member_permissions=nextcord.Permissions(ban_members=True),
     )
     async def top_command(self, interaction: nextcord.Interaction):

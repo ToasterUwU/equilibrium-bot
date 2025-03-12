@@ -20,7 +20,7 @@ class General(commands.Cog):
     @nextcord.slash_command(
         "help",
         description="Shows information about this Bot and everything that is connected to it.",
-        dm_permission=False,
+        contexts=[nextcord.InteractionContextType.guild],
     )
     async def help_command(self, interaction: nextcord.Interaction):
         pages = generate_help_command_pages(
