@@ -129,7 +129,7 @@ class IllegalNameManager(JsonDictSaver):
                             member = await GetOrFetch.member(guild, after.id)
                             if member:
                                 await member.ban(
-                                    delete_message_days=7, reason="Used protected Name."
+                                    delete_message_seconds=604800, reason="Used protected Name."
                                 )
 
     async def update_member(self, before: nextcord.Member, after: nextcord.Member):
@@ -155,7 +155,7 @@ class IllegalNameManager(JsonDictSaver):
                     after.display_name, self.illegal_names[after.guild.id]
                 ).check_all():
                     await after.ban(
-                        delete_message_days=7, reason="Used protected Name."
+                        delete_message_seconds=604800, reason="Used protected Name."
                     )
 
     async def add_member(self, member: nextcord.Member):
@@ -169,7 +169,7 @@ class IllegalNameManager(JsonDictSaver):
                 member.display_name, self.illegal_names[member.guild.id]
             ).check_all()
         ):
-            await member.ban(delete_message_days=7, reason="Used protected Name.")
+            await member.ban(delete_message_seconds=604800, reason="Used protected Name.")
             self.rm_member(member)
 
     def rm_member(self, member: nextcord.Member):
