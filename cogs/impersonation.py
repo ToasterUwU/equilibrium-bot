@@ -316,19 +316,23 @@ class Impersonation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_user_update(self, before: nextcord.User, after: nextcord.User):
-        await self.ILM.update_user(before, after)
+        if not after.bot:
+            await self.ILM.update_user(before, after)
 
     @commands.Cog.listener()
     async def on_member_update(self, before: nextcord.Member, after: nextcord.Member):
-        await self.ILM.update_member(before, after)
+        if not after.bot:
+            await self.ILM.update_member(before, after)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
-        await self.ILM.add_member(member)
+        if not member.bot:
+            await self.ILM.add_member(member)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):
-        self.ILM.rm_member(member)
+        if not member.bot:
+            self.ILM.rm_member(member)
 
     @nextcord.slash_command(
         name="impersonation",
