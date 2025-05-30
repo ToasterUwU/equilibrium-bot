@@ -19,3 +19,7 @@ In cases like this, you can manually enter a name to protect. In this case, we w
 To protect a name manually, use {ADD_MANUAL_NAME_COMMAND_MENTION}
 To stop protecting a name manually, use {RM_MANUAL_NAME_COMMAND_MENTION}
 To see all manually protected names, use {LIST_MANUAL_NAMES_COMMAND_MENTION}
+
+**5. Weird edge case resolution**
+When a person is close to a banned name, but shouldnt be banned you can use the following command. Sometimes names are considered close because of the algorithm which defines this, so sometimes the computer thinks names are close and a human would absolutely disagree.
+To add a User as an exclusion on the current Server, use {EXCLUDE_SINGLE_USER_COMMAND_MENTION}

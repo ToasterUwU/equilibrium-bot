@@ -111,7 +111,16 @@ class IllegalNameManager(JsonDictSaver):
                 while m.display_name in self.illegal_names[role.guild.id]:
                     self.illegal_names[role.guild.id].remove(m.display_name)
 
-    async def update_user(self, before: nextcord.User, after: nextcord.User):
+    def user_is_excluded(self, user_id: int, guild_id: int, excluded_user_ids: list):
+        if guild_id in excluded_user_ids:
+            if user_id in excluded_user_ids[guild_id]:
+                return True
+
+        return False
+
+    async def update_user(
+        self, before: nextcord.User, after: nextcord.User, excluded_user_ids: list
+    ):
         if before.name != after.name:
             priveliged_in = []
             async for guild_id in self.user_is_priveliged_in(after):
@@ -122,17 +131,21 @@ class IllegalNameManager(JsonDictSaver):
                 self.illegal_names[guild_id].append(after.name)
 
             for guild_id, illegal_names in self.illegal_names.items():
-                if guild_id not in priveliged_in:
-                    if NameIllegalChecker(after.name, illegal_names).check_all():
-                        guild = await GetOrFetch.guild(self.bot, guild_id)
-                        if guild:
-                            member = await GetOrFetch.member(guild, after.id)
-                            if member:
-                                await member.ban(
-                                    delete_message_seconds=604800, reason="Used protected Name."
-                                )
+                if not self.user_is_excluded(after.id, guild_id, excluded_user_ids):
+                    if guild_id not in priveliged_in:
+                        if NameIllegalChecker(after.name, illegal_names).check_all():
+                            guild = await GetOrFetch.guild(self.bot, guild_id)
+                            if guild:
+                                member = await GetOrFetch.member(guild, after.id)
+                                if member:
+                                    await member.ban(
+                                        delete_message_seconds=604800,
+                                        reason="Used protected Name.",
+                                    )
 
-    async def update_member(self, before: nextcord.Member, after: nextcord.Member):
+    async def update_member(
+        self, before: nextcord.Member, after: nextcord.Member, excluded_user_ids: list
+    ):
         if before.display_name != after.display_name:
             if self.member_is_priveliged(before) and not self.member_is_priveliged(
                 after
@@ -151,6 +164,9 @@ class IllegalNameManager(JsonDictSaver):
                 self.illegal_names[after.guild.id].append(after.display_name)
 
             else:
+                if self.user_is_excluded(after.id, after.guild.id, excluded_user_ids):
+                    return
+
                 if NameIllegalChecker(
                     after.display_name, self.illegal_names[after.guild.id]
                 ).check_all():
@@ -158,8 +174,11 @@ class IllegalNameManager(JsonDictSaver):
                         delete_message_seconds=604800, reason="Used protected Name."
                     )
 
-    async def add_member(self, member: nextcord.Member):
+    async def add_member(self, member: nextcord.Member, excluded_user_ids: list):
         self.known_members[member.guild.id].append(member.id)
+
+        if self.user_is_excluded(member.id, member.guild.id, excluded_user_ids):
+            return
 
         if (
             NameIllegalChecker(
@@ -169,7 +188,9 @@ class IllegalNameManager(JsonDictSaver):
                 member.display_name, self.illegal_names[member.guild.id]
             ).check_all()
         ):
-            await member.ban(delete_message_seconds=604800, reason="Used protected Name.")
+            await member.ban(
+                delete_message_seconds=604800, reason="Used protected Name."
+            )
             self.rm_member(member)
 
     def rm_member(self, member: nextcord.Member):
@@ -283,6 +304,8 @@ class Impersonation(commands.Cog):
 
         self.ILM = IllegalNameManager(self.bot)
 
+        self.excluded_user_ids = JsonDictSaver("impersonation_excluded_user_ids")
+
         self.help_command_assets = load_help_command_assets("assets/IMPERSONATION/HELP")
 
     async def cog_application_command_check(self, interaction: nextcord.Interaction):
@@ -317,17 +340,17 @@ class Impersonation(commands.Cog):
     @commands.Cog.listener()
     async def on_user_update(self, before: nextcord.User, after: nextcord.User):
         if not after.bot:
-            await self.ILM.update_user(before, after)
+            await self.ILM.update_user(before, after, self.excluded_user_ids)
 
     @commands.Cog.listener()
     async def on_member_update(self, before: nextcord.Member, after: nextcord.Member):
         if not after.bot:
-            await self.ILM.update_member(before, after)
+            await self.ILM.update_member(before, after, self.excluded_user_ids)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
         if not member.bot:
-            await self.ILM.add_member(member)
+            await self.ILM.add_member(member, self.excluded_user_ids)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):
@@ -356,6 +379,7 @@ class Impersonation(commands.Cog):
             ADD_MANUAL_NAME_COMMAND_MENTION=self.add_manual_name.get_mention(),
             RM_MANUAL_NAME_COMMAND_MENTION=self.rm_manual_name.get_mention(),
             LIST_MANUAL_NAMES_COMMAND_MENTION=self.list_manual_names.get_mention(),
+            EXCLUDE_SINGLE_USER_COMMAND_MENTION=self.exclude_single_user.get_mention(),
         )
 
         await CatalogView(pages).start(interaction)
@@ -440,7 +464,8 @@ class Impersonation(commands.Cog):
 
         await interaction.send(
             embed=fancy_embed(
-                "Manually added protected Names", description="```\n" + "\n".join(names) + "\n```"
+                "Manually added protected Names",
+                description="```\n" + "\n".join(names) + "\n```",
             )
         )
 
@@ -514,6 +539,34 @@ class Impersonation(commands.Cog):
             await webhook.send(embed=embed)
 
         await interaction.send("Thanks for reporting this. ")
+
+    @top_command.subcommand(
+        "exclude-single-user",
+        description="Make the Bot not ban a specific User on this Server only. Good for weird edge cases.",
+    )
+    async def exclude_single_user(
+        self,
+        interaction: nextcord.Interaction,
+        user_id: str = nextcord.SlashOption(
+            "user-id",
+            description="The ID of the User that should never be banned. Not the username.",
+        ),
+    ):
+        if not user_id.isnumeric():
+            await interaction.send("The provided User ID is invalid.")
+            return
+
+        user_id = int(user_id)
+
+        if interaction.guild_id not in self.excluded_user_ids:
+            self.excluded_user_ids[interaction.guild_id] = []
+
+        self.excluded_user_ids[interaction.guild_id].append(user_id)
+        self.excluded_user_ids.save()
+
+        await interaction.send(
+            f"Ok, the User with the ID `{user_id}` will not be banned anymore on this Server, no matter if they are using a protected name or not."
+        )
 
 
 def setup(bot):
