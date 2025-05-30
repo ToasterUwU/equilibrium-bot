@@ -287,7 +287,7 @@ class Impersonation(commands.Cog):
 
     async def cog_application_command_check(self, interaction: nextcord.Interaction):
         """
-        Only Admins can use these commands.
+        Only people who can ban members can use these commands.
         """
         if not interaction.user:
             return False
@@ -295,7 +295,7 @@ class Impersonation(commands.Cog):
         if not isinstance(interaction.user, nextcord.Member):
             return False
 
-        if interaction.user.guild_permissions.administrator:
+        if interaction.user.guild_permissions.ban_members:
             return True
 
     @commands.Cog.listener()
