@@ -440,7 +440,7 @@ class Impersonation(commands.Cog):
 
         await interaction.send(
             embed=fancy_embed(
-                "Manually added protected Names", description="\n".join(names)
+                "Manually added protected Names", description="```\n" + "\n".join(names) + "\n```"
             )
         )
 
