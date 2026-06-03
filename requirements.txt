@@ -1,5 +1,5 @@
 nextcord[speed, voice]  == 3.1.*
 orjson                  == 3.11.*
-aiohttp                 == 3.13.*
+aiohttp                 == 3.14.*
 Levenshtein             == 0.27.*
 unidecode               == 1.4.*
